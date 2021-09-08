@@ -27,6 +27,7 @@ public class PlayerController : NetworkBehaviour
     private Vector3 targetForward = Vector3.forward;
     private float targetVelocity = 0.0f;
     private float currentVelocity = 0.0f;
+    private Vector3 velocity = Vector3.zero;
     private bool isWalking = false;
 
     public override void NetworkStart()
@@ -57,7 +58,7 @@ public class PlayerController : NetworkBehaviour
         {
             LocalUpdate();
 
-            currentVelocity = Mathf.Lerp(currentVelocity, targetVelocity * (isWalking ? 0.5f : 1.0f), 0.1f);
+            currentVelocity = Mathf.Lerp(currentVelocity, targetVelocity * (isWalking ? 0.5f : 1.0f), 0.3f);
             animator.SetFloat("VelocityForward", currentVelocity);
             animator.transform.forward = Vector3.Lerp(animator.transform.forward, targetForward, 0.3f);
 
@@ -67,7 +68,7 @@ public class PlayerController : NetworkBehaviour
         else
         {
             timeSinceLastPositionSync += Time.deltaTime;
-            if (timeSinceLastPositionSync > 1.0f)
+            if (timeSinceLastPositionSync > 0.2f)
             {
                 animator.transform.position = Position.Value;
                 animator.transform.rotation = Rotation.Value;
@@ -79,7 +80,8 @@ public class PlayerController : NetworkBehaviour
 
     void LocalUpdate()
     {
-
+        velocity.y = Mathf.Max(0, velocity.y - 9.81f * Time.deltaTime);
+        characterController.Move(velocity * Time.deltaTime);
     }
 
     public void OnMove(InputValue inputValue)
@@ -93,6 +95,16 @@ public class PlayerController : NetworkBehaviour
         }
 
         targetVelocity = Mathf.Clamp01(magnitude);
+    }
+
+    public void OnJump(InputValue inputValue)
+    {
+
+        if (characterController.isGrounded)
+        {
+            SetAnimationTrigger("Jump");
+            velocity.y += 10.0f;
+        }
     }
 
     public void OnWalk(InputValue inputValue)
