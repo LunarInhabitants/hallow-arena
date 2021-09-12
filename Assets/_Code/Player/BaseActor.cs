@@ -17,6 +17,12 @@ public abstract class BaseActor : NetworkBehaviour
     /// <summary>This is what speed the x and z impulese velocities decay to when in the air, rather than 0.</summary>
     const float MAX_AIR_IMPULSE_SPEED = 2.0f;
 
+    #region Variables
+
+    [SerializeField] private ActorUI actorUIPrefab;
+    public ActorUI ActorUI { get; private set; }
+
+    #endregion Variables
 
     #region Components
 
@@ -83,6 +89,11 @@ public abstract class BaseActor : NetworkBehaviour
     public override void NetworkStart()
     {
         base.NetworkStart();
+
+        if(IsOwner)
+        {
+            ActorUI = Instantiate(actorUIPrefab, transform);
+        }
 
         Teleport(Position.Value, Rotation.Value);
     }

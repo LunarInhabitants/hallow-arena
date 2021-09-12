@@ -30,6 +30,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d678a21cf518d284682bbb29ecf3053c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  actorUIPrefab: {fileID: 944972486394574840, guid: 4442fb601798048489c5975dcc30f834, type: 3}
+  Position:
+    m_InternalValue: {x: 0, y: 0, z: 0}
+  Rotation:
+    m_InternalValue: {x: 0, y: 0, z: 0, w: 0}
   <Emotes>k__BackingField:
   - Emote_Wave
   - Emote_Point
