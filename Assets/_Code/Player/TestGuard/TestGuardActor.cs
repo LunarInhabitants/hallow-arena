@@ -11,6 +11,6 @@ public class TestGuardActor : BaseActor
 
     public override void UseAbility(int abilityIndex)
     {
-        Debug.Log($"I've used ability {abilityIndex}");
+        Debug.Log($"I've used ability {abilityIndex} ");
     }
 }
