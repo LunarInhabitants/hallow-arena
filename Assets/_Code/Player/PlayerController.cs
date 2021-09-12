@@ -2,51 +2,32 @@ using Cinemachine;
 using MLAPI;
 using MLAPI.Messaging;
 using MLAPI.NetworkVariable;
+using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class PlayerController : NetworkBehaviour
 {
-    public NetworkVariableVector3 Position = new NetworkVariableVector3(new NetworkVariableSettings
-    {
-        WritePermission = NetworkVariablePermission.ServerOnly,
-        ReadPermission = NetworkVariablePermission.Everyone
-    });
+    public static PlayerController LocalPlayerController { get; private set; }
 
-    public NetworkVariableQuaternion Rotation = new NetworkVariableQuaternion(new NetworkVariableSettings
-    {
-        WritePermission = NetworkVariablePermission.ServerOnly,
-        ReadPermission = NetworkVariablePermission.Everyone
-    });
-
+    public BaseActor Actor { get; private set; }
     private CinemachineVirtualCamera vCam;
-    private CharacterController characterController;
-    private Animator animator;
 
-    private float timeSinceLastPositionSync = 0.0f;
-    private Vector3 targetForward = Vector3.forward;
-    private float targetVelocity = 0.0f;
-    private float currentVelocity = 0.0f;
-    private Vector3 velocity = Vector3.zero;
-    private bool isWalking = false;
+    // TODO: THESE ARE TEMP
+    public BaseActor meleePrefab;
+    public BaseActor rangedPrefab;
 
     public override void NetworkStart()
     {
         vCam = GetComponentInChildren<CinemachineVirtualCamera>();
-        characterController = GetComponentInChildren<CharacterController>();
-        animator = GetComponentInChildren<Animator>();
 
         if (IsLocalPlayer)
         {
-            vCam.LookAt = animator.GetBoneTransform(HumanBodyBones.Head);
+            LocalPlayerController = this;
         }
         else
         {
-            Debug.Log($"Spawned player pos: {Position.Value}");
-            animator.transform.position = Position.Value;
-            animator.transform.rotation = Rotation.Value;
-            Physics.SyncTransforms();
-
             vCam.enabled = false;
             GetComponent<PlayerInput>().enabled = false;
         }
@@ -54,138 +35,175 @@ public class PlayerController : NetworkBehaviour
 
     void Update()
     {
-        if (IsLocalPlayer)
+        if (Actor == null)
+        {
+            return;
+        }
+
+        if (IsOwner)
         {
             LocalUpdate();
-
-            currentVelocity = Mathf.Lerp(currentVelocity, targetVelocity * (isWalking ? 0.5f : 1.0f), 0.3f);
-            animator.SetFloat("VelocityForward", currentVelocity);
-            animator.transform.forward = Vector3.Lerp(animator.transform.forward, targetForward, 0.3f);
-
-            SetPosition(animator.transform.position);
-            SetRotation(animator.transform.rotation);
-        }
-        else
-        {
-            timeSinceLastPositionSync += Time.deltaTime;
-            if (timeSinceLastPositionSync > 0.2f)
-            {
-                animator.transform.position = Position.Value;
-                animator.transform.rotation = Rotation.Value;
-                Physics.SyncTransforms();
-                timeSinceLastPositionSync = 0.0f;
-            }
         }
     }
 
     void LocalUpdate()
     {
-        velocity.y = Mathf.Max(0, velocity.y - 9.81f * Time.deltaTime);
-        characterController.Move(velocity * Time.deltaTime);
     }
+
+    [Obsolete("THIS IS A DEBUG CALL")]
+    public void SpawnAsMelee()
+    {
+        SpawnPlayerObjectServerRpc(OwnerClientId, false);
+        StartCoroutine(PostCharacterSpawn());
+    }
+
+    [Obsolete("THIS IS A DEBUG CALL")]
+    public void SpawnAsRanged()
+    {
+        SpawnPlayerObjectServerRpc(OwnerClientId, true);
+        StartCoroutine(PostCharacterSpawn());
+    }
+
+    // TEST CALL
+    private IEnumerator PostCharacterSpawn()
+    {
+        while (Actor == null)
+        {
+            yield return null;
+            Actor = GetComponentInChildren<BaseActor>();
+        }
+
+        if (IsLocalPlayer)
+        {
+            vCam.Follow = Actor.transform;
+            vCam.LookAt = Actor.Animator.GetBoneTransform(HumanBodyBones.Head);
+        }
+    }
+
+    #region Controls Events
 
     public void OnMove(InputValue inputValue)
     {
+        if (Actor == null)
+        {
+            return;
+        }
+
         Vector2 value = inputValue.Get<Vector2>();
         float magnitude = value.magnitude;
 
+        Vector3 moveVec = Vector3.zero;
         if (magnitude > 0)
         {
-            targetForward = new Vector3(value.x, 0, value.y).normalized;
+            moveVec = new Vector3(value.x, 0, value.y).normalized;
+            Actor.SetForward(moveVec); // TEMP UNTIL 3RD PERSON CAMERA
         }
 
-        targetVelocity = Mathf.Clamp01(magnitude);
+        //Actor.SetOrientatedMovementVector(moveVec);
+        Actor.SetOrientatedMovementVector(new Vector3(0, 0, magnitude)); // TEMP UNTIL 3RD PERSON CAMERA
     }
 
     public void OnJump(InputValue inputValue)
     {
-
-        if (characterController.isGrounded)
+        if (Actor != null)
         {
-            SetAnimationTrigger("Jump");
-            velocity.y += 10.0f;
+            Actor.Jump();
         }
     }
 
     public void OnWalk(InputValue inputValue)
     {
-        isWalking = inputValue.isPressed;
+        if (Actor != null)
+        {
+            Actor.SetMoveSpeedMultiplier(inputValue.isPressed ? 0.5f : 1.0f);
+        }
+    }
+
+    public void OnAttack(InputValue inputValue)
+    {
+        if (Actor != null)
+        {
+            if (inputValue.isPressed)
+            {
+                Actor.BeginAttack();
+            }
+            else
+            {
+                Actor.EndAttack();
+            }
+        }
+    }
+
+    public void OnAbility1(InputValue inputValue)
+    {
+        if (Actor != null)
+        {
+            Actor.UseAbility(1);
+        }
+    }
+
+    public void OnAbility2(InputValue inputValue)
+    {
+        if (Actor != null)
+        {
+            Actor.UseAbility(2);
+        }
+    }
+
+    public void OnAbility3(InputValue inputValue)
+    {
+        if (Actor != null)
+        {
+            Actor.UseAbility(3);
+        }
+    }
+
+    public void OnAbility4(InputValue inputValue)
+    {
+        if (Actor != null)
+        {
+            Actor.UseAbility(4);
+        }
     }
 
     public void OnEmote1(InputValue inputValue)
     {
-        SetAnimationTrigger("Emote_Wave");
+        if (Actor != null)
+        {
+            Actor.PlayEmote(1);
+        }
     }
 
     public void OnEmote2(InputValue inputValue)
     {
-        SetAnimationTrigger("Emote_Point");
+        if (Actor != null)
+        {
+            Actor.PlayEmote(2);
+        }
     }
 
     public void OnEmote3(InputValue inputValue)
     {
-        SetAnimationTrigger("Emote_Insult");
+        if (Actor != null)
+        {
+            Actor.PlayEmote(3);
+        }
     }
 
-    public void SetAnimationTrigger(string trigger)
+    public void OnEmote4(InputValue inputValue)
     {
-        if (IsServer)
+        if (Actor != null)
         {
-            //animator.SetTrigger(trigger);
-            SetAnimationTriggerClientRpc(trigger);
-        }
-        else
-        {
-            SetAnimationTriggerServerRpc(trigger);
+            Actor.PlayEmote(4);
         }
     }
+
+    #endregion Controls Events
 
     [ServerRpc]
-    public void SetAnimationTriggerServerRpc(string trigger)
+    public void SpawnPlayerObjectServerRpc(ulong clientID, bool isRanged)
     {
-        animator.SetTrigger(trigger);
-        SetAnimationTriggerClientRpc(trigger);
-    }
-
-    [ClientRpc]
-    public void SetAnimationTriggerClientRpc(string trigger)
-    {
-        animator.SetTrigger(trigger);
-    }
-
-    void SetPosition(Vector3 newPosition)
-    {
-        if (IsServer)
-        {
-            Position.Value = newPosition;
-        }
-        else
-        {
-            _SetPositionServerRpc(newPosition);
-        }
-    }
-
-    [ServerRpc]
-    void _SetPositionServerRpc(Vector3 newPosition)
-    {
-        Position.Value = newPosition;
-    }
-
-    void SetRotation(Quaternion newRotation)
-    {
-        if(IsServer)
-        {
-            Rotation.Value = newRotation;
-        }
-        else
-        {
-            _SetRotationServerRpc(newRotation);
-        }
-    }
-
-    [ServerRpc]
-    void _SetRotationServerRpc(Quaternion newRotation)
-    {
-        Rotation.Value = newRotation;
+        BaseActor ba = Instantiate(isRanged ? rangedPrefab : meleePrefab, transform);
+        ba.GetComponent<NetworkObject>().SpawnWithOwnership(clientID);
     }
 }

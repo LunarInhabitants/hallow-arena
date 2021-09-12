@@ -71,6 +71,17 @@ public class Dbg_ConnectionUI : MonoBehaviour
             }
         }
 
+        if(PlayerController.LocalPlayerController?.Actor == null)
+        {
+            if(GUILayout.Button("Spawn as Melee"))
+            {
+                PlayerController.LocalPlayerController.SpawnAsMelee();
+            }
+            if (GUILayout.Button("Spawn as Ranged"))
+            {
+                PlayerController.LocalPlayerController.SpawnAsRanged();
+            }
+        }
 
         GUILayout.Label("Transport: " + NetworkManager.Singleton.NetworkConfig.NetworkTransport.GetType().Name);
         GUILayout.Label("Mode: " + mode);
