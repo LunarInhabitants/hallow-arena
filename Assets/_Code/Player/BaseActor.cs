@@ -128,7 +128,6 @@ public abstract class BaseActor : NetworkBehaviour
             timeSinceLastPositionSync += Time.deltaTime;
             if (timeSinceLastPositionSync > 0.2f)
             {
-                Debug.Log(Position.Value);
                 Teleport(Position.Value, Rotation.Value);
                 timeSinceLastPositionSync = 0.0f;
             }
@@ -245,15 +244,15 @@ public abstract class BaseActor : NetworkBehaviour
         if(IsOwner)
         {
             transform.position = newPosition;
-        }
 
-        if (IsServer)
-        {
-            Position.Value = newPosition;
-        }
-        else
-        {
-            _SetPositionServerRpc(newPosition);
+            if (IsServer)
+            {
+                Position.Value = newPosition;
+            }
+            else
+            {
+                _SetPositionServerRpc(newPosition);
+            }
         }
     }
 
@@ -268,15 +267,15 @@ public abstract class BaseActor : NetworkBehaviour
         if (IsOwner)
         {
             transform.rotation = newRotation;
-        }
 
-        if (IsServer)
-        {
-            Rotation.Value = newRotation;
-        }
-        else
-        {
-            _SetRotationServerRpc(newRotation);
+            if (IsServer)
+            {
+                Rotation.Value = newRotation;
+            }
+            else
+            {
+                _SetRotationServerRpc(newRotation);
+            }
         }
     }
 
