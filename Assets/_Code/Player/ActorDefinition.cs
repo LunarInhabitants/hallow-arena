@@ -9,6 +9,7 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "ActorDefinition.asset", menuName = "Hallow Arena/Actors/Actor Definition", order = 182)]
 public class ActorDefinition : ScriptableObject
 {
+    public string internalID;
     public string displayName;
     public Sprite icon;
     public BaseActor prefab;

@@ -6,6 +6,7 @@ public class Dbg_ConnectionUI : MonoBehaviour
 {
     public string targetIP = "127.0.0.1";
     public int targetPort = 7777;
+    public GameDatabase gameDatabase;
 
     void OnGUI()
     {
@@ -51,7 +52,7 @@ public class Dbg_ConnectionUI : MonoBehaviour
         }
     }
 
-    static void StatusLabels()
+    void StatusLabels()
     {
         var mode = NetworkManager.Singleton.IsHost ? "Host" : NetworkManager.Singleton.IsServer ? "Server" : "Client";
 
@@ -73,13 +74,12 @@ public class Dbg_ConnectionUI : MonoBehaviour
 
         if(PlayerController.LocalPlayerController?.Actor == null)
         {
-            if(GUILayout.Button("Spawn as Melee"))
+            foreach(var actor in gameDatabase.availableCharacters)
             {
-                PlayerController.LocalPlayerController.SpawnAsMelee();
-            }
-            if (GUILayout.Button("Spawn as Ranged"))
-            {
-                PlayerController.LocalPlayerController.SpawnAsRanged();
+                if (GUILayout.Button($"Spawn as {actor.displayName}"))
+                {
+                    PlayerController.LocalPlayerController.SpawnAs(actor.internalID);
+                }
             }
         }
 

@@ -110,7 +110,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b963e40ef197e344ba8adf58bb008804, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  actorUIPrefab: {fileID: 8417966493315574795, guid: da5260157fd7b0940bdee77b913e1291, type: 3}
+  initialHealth: 75
+  actorUIPrefab: {fileID: 8332796560778597014, guid: da5260157fd7b0940bdee77b913e1291, type: 3}
   Position:
     m_InternalValue: {x: 0, y: 0, z: 0}
   Rotation:

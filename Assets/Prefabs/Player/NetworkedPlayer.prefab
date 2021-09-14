@@ -82,7 +82,6 @@ GameObject:
   - component: {fileID: 4132459119649282267}
   - component: {fileID: 2308247825992639317}
   - component: {fileID: 1416680847249297647}
-  - component: {fileID: 9016991782078022471}
   m_Layer: 0
   m_Name: NetworkedPlayer
   m_TagString: Untagged
@@ -117,12 +116,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bf17ce64048efe647ad0678aca47a457, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Position:
-    m_InternalValue: {x: 0, y: 0, z: 0}
-  Rotation:
-    m_InternalValue: {x: 0, y: 0, z: 0, w: 0}
-  meleePrefab: {fileID: 678885420878713221, guid: 511c49dd04361324890f64005b513da9, type: 3}
-  rangedPrefab: {fileID: 8490485630678108667, guid: 0d3f1a3c85dd6b54d83c640a9e5bd40a, type: 3}
+  gameDatabase: {fileID: 11400000, guid: 6ec5ba2c555d1fa4194579a16134dd40, type: 2}
 --- !u!114 &2308247825992639317
 MonoBehaviour:
   m_ObjectHideFlags: 0

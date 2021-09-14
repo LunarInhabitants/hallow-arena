@@ -332,6 +332,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   targetIP: 127.0.0.1
   targetPort: 7777
+  gameDatabase: {fileID: 11400000, guid: 6ec5ba2c555d1fa4194579a16134dd40, type: 2}
 --- !u!43 &142440904
 Mesh:
   m_ObjectHideFlags: 0

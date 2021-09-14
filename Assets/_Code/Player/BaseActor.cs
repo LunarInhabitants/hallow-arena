@@ -19,6 +19,8 @@ public abstract class BaseActor : NetworkBehaviour
 
     #region Variables
 
+    [SerializeField] private int initialHealth;
+
     [SerializeField] private ActorUI actorUIPrefab;
     public ActorUI ActorUI { get; private set; }
 
@@ -84,6 +86,8 @@ public abstract class BaseActor : NetworkBehaviour
     {
         CharacterController = GetComponent<CharacterController>();
         Animator = GetComponent<Animator>();
+
+        // TODO: Get DamageHandler component, set its health value to initialHealth and wire up 'OnDamaged' as appropiate to update the HUD.
     }
 
     public override void NetworkStart()
@@ -93,6 +97,8 @@ public abstract class BaseActor : NetworkBehaviour
         if(IsOwner)
         {
             ActorUI = Instantiate(actorUIPrefab, transform);
+            // TODO: Init the health value from the DamageHandler instead.
+            ActorUI.Init(initialHealth);
         }
 
         Teleport(Position.Value, Rotation.Value);
@@ -208,6 +214,21 @@ public abstract class BaseActor : NetworkBehaviour
         if(emoteIndex > 0 && emoteIndex <= Emotes.Length)
         {
             SetAnimationTrigger(Emotes[emoteIndex - 1]);
+        }
+
+        // TESTING
+        if(ActorUI != null)
+        {
+            if (emoteIndex == 1)
+            {
+                // TEST HEAL
+                ActorUI.SetCurrentHealth(initialHealth);
+            }
+            else if(emoteIndex == 2)
+            {
+                // TEST HURT
+                ActorUI.SetCurrentHealth(initialHealth / 2);
+            }
         }
     }
 
