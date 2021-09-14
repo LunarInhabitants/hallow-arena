@@ -205,5 +205,6 @@ public class PlayerController : NetworkBehaviour
     {
         BaseActor ba = Instantiate(isRanged ? rangedPrefab : meleePrefab, transform);
         ba.GetComponent<NetworkObject>().SpawnWithOwnership(clientID);
+        //ba.GetComponent<NetworkObject>().Spawn();
     }
 }

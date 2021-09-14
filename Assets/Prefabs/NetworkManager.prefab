@@ -52,6 +52,7 @@ MonoBehaviour:
     NetworkTransport: {fileID: 7760812711159499172}
     RegisteredScenes:
     - TestScene
+    - MainMenu
     AllowRuntimeSceneChanges: 0
     NetworkPrefabs:
     - Prefab: {fileID: 4744603141306243263, guid: 5cb4d66efedbe074c91061b66976349d, type: 3}
