@@ -11,7 +11,8 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 654cc749a1a23dd47aef61fbe6e51969, type: 3}
   m_Name: TestGuard_Def
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier:
+  internalID: test_guard
   displayName: Test Guard
   icon: {fileID: 0}
-  prefab: {fileID: 678885420878713221, guid: 511c49dd04361324890f64005b513da9, type: 3}
+  prefab: {fileID: -7208406860381145708, guid: 511c49dd04361324890f64005b513da9, type: 3}

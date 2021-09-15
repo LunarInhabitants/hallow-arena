@@ -4,6 +4,7 @@ using MLAPI.Messaging;
 using MLAPI.NetworkVariable;
 using System;
 using System.Collections;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -14,9 +15,7 @@ public class PlayerController : NetworkBehaviour
     public BaseActor Actor { get; private set; }
     private CinemachineVirtualCamera vCam;
 
-    // TODO: THESE ARE TEMP
-    public BaseActor meleePrefab;
-    public BaseActor rangedPrefab;
+    [SerializeField] private GameDatabase gameDatabase;
 
     public override void NetworkStart()
     {
@@ -50,17 +49,9 @@ public class PlayerController : NetworkBehaviour
     {
     }
 
-    [Obsolete("THIS IS A DEBUG CALL")]
-    public void SpawnAsMelee()
+    public void SpawnAs(string actorID)
     {
-        SpawnPlayerObjectServerRpc(OwnerClientId, false);
-        StartCoroutine(PostCharacterSpawn());
-    }
-
-    [Obsolete("THIS IS A DEBUG CALL")]
-    public void SpawnAsRanged()
-    {
-        SpawnPlayerObjectServerRpc(OwnerClientId, true);
+        SpawnPlayerObjectServerRpc(OwnerClientId, actorID);
         StartCoroutine(PostCharacterSpawn());
     }
 
@@ -201,9 +192,23 @@ public class PlayerController : NetworkBehaviour
     #endregion Controls Events
 
     [ServerRpc]
-    public void SpawnPlayerObjectServerRpc(ulong clientID, bool isRanged)
+    public void SpawnPlayerObjectServerRpc(ulong clientID, string actorID)
     {
-        BaseActor ba = Instantiate(isRanged ? rangedPrefab : meleePrefab, transform);
+        ActorDefinition actorDef = gameDatabase.availableCharacters.FirstOrDefault(a => a.internalID.Equals(actorID, StringComparison.OrdinalIgnoreCase));
+
+        if(actorDef == null)
+        {
+            Debug.LogError($"Could not spawn character with ID {actorID} - Actor could not be found in the internal database.");
+            return;
+        }
+
+        if (actorDef.prefab == null)
+        {
+            Debug.LogError($"Could not spawn character with ID {actorID} - Actor prefab in definition was null.");
+            return;
+        }
+
+        BaseActor ba = Instantiate(actorDef.prefab, transform);
         ba.GetComponent<NetworkObject>().SpawnWithOwnership(clientID);
         //ba.GetComponent<NetworkObject>().Spawn();
     }
