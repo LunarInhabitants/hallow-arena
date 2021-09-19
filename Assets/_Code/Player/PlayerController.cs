@@ -12,22 +12,22 @@ public class PlayerController : NetworkBehaviour
 {
     public static PlayerController LocalPlayerController { get; private set; }
 
-    public BaseActor Actor { get; private set; }
-    private CinemachineVirtualCamera vCam;
-
     [SerializeField] private GameDatabase gameDatabase;
+    [SerializeField] private PlayerCameraRig playerCameraRigPrefab;
+
+    public BaseActor Actor { get; private set; }
+    public PlayerCameraRig CameraRig { get; private set; }
 
     public override void NetworkStart()
     {
-        vCam = GetComponentInChildren<CinemachineVirtualCamera>();
-
         if (IsLocalPlayer)
         {
             LocalPlayerController = this;
+            CameraRig = Instantiate(playerCameraRigPrefab, transform);
+            CameraRig.SetMapVantageCamera(null); // Sets to the first vantage camera, if available.
         }
         else
         {
-            vCam.enabled = false;
             GetComponent<PlayerInput>().enabled = false;
         }
     }
@@ -64,10 +64,11 @@ public class PlayerController : NetworkBehaviour
             Actor = GetComponentInChildren<BaseActor>();
         }
 
-        if (IsLocalPlayer)
+        Actor.OnCreatedByPlayerController(this);
+
+        if (IsOwner)
         {
-            vCam.Follow = Actor.transform;
-            vCam.LookAt = Actor.Animator.GetBoneTransform(HumanBodyBones.Head);
+            CameraRig.AttachToActor(Actor);
         }
     }
 
@@ -87,11 +88,35 @@ public class PlayerController : NetworkBehaviour
         if (magnitude > 0)
         {
             moveVec = new Vector3(value.x, 0, value.y).normalized;
-            Actor.SetForward(moveVec); // TEMP UNTIL 3RD PERSON CAMERA
+
+            if (CameraRig.CameraMode == CameraMode.IsometricCamera) // TODO: Dev Check - Remove this block if we remove isometric camera
+            {
+                Actor.SetForward(moveVec); // TEMP UNTIL 3RD PERSON CAMERA
+            }
         }
 
-        //Actor.SetOrientatedMovementVector(moveVec);
-        Actor.SetOrientatedMovementVector(new Vector3(0, 0, magnitude)); // TEMP UNTIL 3RD PERSON CAMERA
+        if(CameraRig.CameraMode == CameraMode.IsometricCamera) // TODO: Dev Check - Remove this block if we remove isometric camera
+        {
+            Actor.SetOrientatedMovementVector(new Vector3(0, 0, magnitude)); // TEMP UNTIL 3RD PERSON CAMERA
+        }
+        else
+        {
+            Actor.SetOrientatedMovementVector(moveVec);
+        }
+    }
+
+    public void OnLook(InputValue inputValue)
+    {
+        if (Actor != null && CameraRig.CameraMode != CameraMode.IsometricCamera)
+        {
+            Vector2 value = inputValue.Get<Vector2>();
+
+            Actor.AddLookVector(value);
+        }
+        else if(CameraRig.CameraMode == CameraMode.SpectatorCamera)
+        {
+            // TODO
+        }
     }
 
     public void OnJump(InputValue inputValue)
@@ -122,6 +147,10 @@ public class PlayerController : NetworkBehaviour
             {
                 Actor.EndAttack();
             }
+        }
+        else if(CameraRig != null && inputValue.isPressed)
+        {
+            CameraRig.SetToNextVantageCamera();
         }
     }
 

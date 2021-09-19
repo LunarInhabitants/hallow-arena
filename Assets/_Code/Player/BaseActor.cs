@@ -29,6 +29,16 @@ public abstract class BaseActor : NetworkBehaviour
     #region Components
 
     /// <summary>
+    /// The direct parent controller for this actor.
+    /// </summary>
+    public PlayerController ParentController { get; private set; }
+
+    /// <summary>
+    /// This character's camera rig. Only valid on a local player.
+    /// </summary>
+    public PlayerCameraRig CameraRig { get; private set; }
+
+    /// <summary>
     /// The Unity <see cref="Animator"/> attached to this Actor.
     /// </summary>
     public Animator Animator { get; private set; }
@@ -62,7 +72,8 @@ public abstract class BaseActor : NetworkBehaviour
     /// A vector describing 3D motion of the character, with +Z being forwards from where I'm looking and +X being right.
     /// </summary>
     public Vector3 OrientatedMovementVector { get; private set; }
-    private Vector3 targetForward = Vector3.forward;
+    private Vector2 cameraLookAngles = new Vector2();
+    public Vector3 LookDirection { get; private set; } = Vector3.forward;
     private Vector3 lastOrientatedVelocity = Vector3.zero;
 
     /// <summary>
@@ -104,6 +115,16 @@ public abstract class BaseActor : NetworkBehaviour
         Teleport(Position.Value, Rotation.Value);
     }
 
+    public void OnCreatedByPlayerController(PlayerController creator)
+    {
+        ParentController = creator;
+    }
+
+    public void OnCameraRigAttached(PlayerCameraRig rig)
+    {
+        CameraRig = rig;
+    }
+
     protected void Update()
     {
         if (IsOwner)
@@ -134,7 +155,7 @@ public abstract class BaseActor : NetworkBehaviour
             Impulse = newImpulse;
         }
 
-        if(IsOwner)
+        if (IsOwner)
         {
             SetPosition(transform.position);
             SetRotation(transform.rotation);
@@ -156,7 +177,20 @@ public abstract class BaseActor : NetworkBehaviour
     /// </summary>
     protected virtual void LocalUpdate()
     {
-        transform.forward = Vector3.Lerp(transform.forward, targetForward, 0.2f);
+        Vector3 targetForward = LookDirection;
+        targetForward.y = 0.0f;
+        transform.forward = targetForward.normalized;
+
+        if (CameraRig != null && CameraRig.CameraMode != CameraMode.IsometricCamera) // TODO: Dev check. Remove this block if isometric camera is removed
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+        }
+        else
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
 
         // Orientates the animations based on true velocity - Means things like capes and such can be affected by knockback.
         Vector3 currentOrientatedVelocity = OrientatedMovementVector + transform.rotation * Impulse;
@@ -168,7 +202,27 @@ public abstract class BaseActor : NetworkBehaviour
         Animator.SetFloat("VelocityRight", lastOrientatedVelocity.x * lastMoveSpeedMultiplier);
     }
 
+    protected void OnAnimatorIK(int layerIndex)
+    {
+        Transform head = Animator.GetBoneTransform(HumanBodyBones.Head);
+        if (head != null)
+        {
+            Animator.SetLookAtPosition(head.position + LookDirection);
+            Animator.SetLookAtWeight(1.0f, 0.5f, 1.0f);
+        }
+    }
+
     #region General Control
+
+    public void AddLookVector(Vector2 lookInput)
+    {
+        // TODO: Handle up/down look
+        // TODO: Handle look sensitivity
+        cameraLookAngles += lookInput * 0.05f;
+        cameraLookAngles.y = Mathf.Clamp(cameraLookAngles.y, -75.0f, 75.0f);
+
+        LookDirection = Quaternion.Euler(-cameraLookAngles.y, cameraLookAngles.x, 0.0f) * Vector3.forward;
+    }
 
     /// <summary>
     /// Makes the character jump.
@@ -260,7 +314,7 @@ public abstract class BaseActor : NetworkBehaviour
 
     public void SetForward(Vector3 forward)
     {
-        targetForward = forward;
+        LookDirection = forward;
     }
 
     public void SetMoveSpeedMultiplier(float newMult)
