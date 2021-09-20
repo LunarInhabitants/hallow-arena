@@ -226,7 +226,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 812986d35f478ae45b541f8a42401298, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  virtualCamera: {fileID: 4010388315667125417}
+  <VirtualCamera>k__BackingField: {fileID: 4010388315667125417}
   followTarget: {fileID: 5135364376480723068}
   lookAtTarget: {fileID: 8647830302147304315}
 --- !u!1 &3479435418719194634

@@ -112,14 +112,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   initialHealth: 75
   actorUIPrefab: {fileID: 8332796560778597014, guid: da5260157fd7b0940bdee77b913e1291, type: 3}
-  Position:
-    m_InternalValue: {x: 0, y: 0, z: 0}
-  Rotation:
-    m_InternalValue: {x: 0, y: 0, z: 0, w: 0}
   <Emotes>k__BackingField:
   - Emote_Wave
   - Emote_Point
   - Emote_Insult
+  Position:
+    m_InternalValue: {x: 0, y: 0, z: 0}
+  Rotation:
+    m_InternalValue: {x: 0, y: 0, z: 0, w: 0}
+  castProjectilePrefab: {fileID: 5539094098859377834, guid: faf56a574dcfb024fbeb9b7bfa0f92b9, type: 3}
+  castPoint: {fileID: 546960817381538334}
 --- !u!1001 &7006433487572866163
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -361,5 +363,10 @@ GameObject:
 --- !u!95 &3481651446878710242 stripped
 Animator:
   m_CorrespondingSourceObject: {fileID: 5866666021909216657, guid: e787610356a160747a0e9a86eba045bd, type: 3}
+  m_PrefabInstance: {fileID: 7006433487572866163}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &546960817381538334 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -1824824446595371411, guid: e787610356a160747a0e9a86eba045bd, type: 3}
   m_PrefabInstance: {fileID: 7006433487572866163}
   m_PrefabAsset: {fileID: 0}

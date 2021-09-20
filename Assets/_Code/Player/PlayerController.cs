@@ -111,7 +111,7 @@ public class PlayerController : NetworkBehaviour
         {
             Vector2 value = inputValue.Get<Vector2>();
 
-            Actor.AddLookVector(value);
+            Actor.AddLookVectorFromInput(value);
         }
         else if(CameraRig.CameraMode == CameraMode.SpectatorCamera)
         {

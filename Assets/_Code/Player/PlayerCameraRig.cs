@@ -20,7 +20,7 @@ public enum CameraMode
 
 public class PlayerCameraRig : MonoBehaviour
 {
-    [SerializeField] private CinemachineVirtualCamera virtualCamera;
+    [field: SerializeField] public CinemachineVirtualCamera VirtualCamera { get; private set; }
     [SerializeField] private Transform followTarget;
     [SerializeField] private Transform lookAtTarget;
 
@@ -59,7 +59,7 @@ public class PlayerCameraRig : MonoBehaviour
             CameraMode = CameraMode.IsometricCamera; 
         }
 
-        virtualCamera.enabled = true;
+        VirtualCamera.enabled = true;
         myActor.OnCameraRigAttached(this);
 
         if(CurrentMapVantageCamera != null)
@@ -103,7 +103,7 @@ public class PlayerCameraRig : MonoBehaviour
         CurrentMapVantageCamera = vantageCamera;
         CurrentMapVantageCamera.Activate();
         CameraMode = CameraMode.MapVantageSpectatorCamera;
-        virtualCamera.enabled = false;
+        VirtualCamera.enabled = false;
     }
 
     public void SetToNextVantageCamera()
@@ -171,7 +171,7 @@ public class PlayerCameraRig : MonoBehaviour
         Gizmos.color = Color.cyan;
         Gizmos.DrawLine(followTarget.position, lookAtTarget.position);
         Gizmos.color = Color.yellow;
-        Gizmos.DrawLine(followTarget.position, virtualCamera.transform.position);
+        Gizmos.DrawLine(followTarget.position, VirtualCamera.transform.position);
     }
 #endif
 }

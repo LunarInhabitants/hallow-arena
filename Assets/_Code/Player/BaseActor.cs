@@ -10,12 +10,17 @@ using UnityEngine;
 /// This essentially acts like a puppet to be controlled by a parent controller, either a player or an AI.
 /// </summary>
 [RequireComponent(typeof(Animator), typeof(CharacterController))]
-public abstract class BaseActor : NetworkBehaviour
+public abstract partial class BaseActor : NetworkBehaviour
 {
     const float PLAYER_MOVEMENT_ACCEL = 8.0f;
     const float IMPULSE_DECAY_MULT = 5.0f;
     /// <summary>This is what speed the x and z impulese velocities decay to when in the air, rather than 0.</summary>
     const float MAX_AIR_IMPULSE_SPEED = 2.0f;
+
+    private static bool hasDoneStaticInit = false;
+    public static LayerMask LayerMask_PlayerCharacter { get; private set; }
+    public static LayerMask LayerMask_OtherCharacter { get; private set; }
+    public static LayerMask LayerMask_Projectile { get; private set; }
 
     #region Variables
 
@@ -50,24 +55,6 @@ public abstract class BaseActor : NetworkBehaviour
 
     #endregion Components
 
-    #region Networked Variables
-
-    public NetworkVariableVector3 Position = new NetworkVariableVector3(new NetworkVariableSettings
-    {
-        WritePermission = NetworkVariablePermission.ServerOnly,
-        ReadPermission = NetworkVariablePermission.Everyone
-    });
-
-    public NetworkVariableQuaternion Rotation = new NetworkVariableQuaternion(new NetworkVariableSettings
-    {
-        WritePermission = NetworkVariablePermission.ServerOnly,
-        ReadPermission = NetworkVariablePermission.Everyone
-    });
-
-    private float timeSinceLastPositionSync = 0.0f;
-
-    #endregion Networked Variables
-
     /// <summary>
     /// A vector describing 3D motion of the character, with +Z being forwards from where I'm looking and +X being right.
     /// </summary>
@@ -93,8 +80,18 @@ public abstract class BaseActor : NetworkBehaviour
     /// </summary>
     [field: SerializeField] public string[] Emotes { get; private set; } = new[] { "Emote_Wave", "Emote_Point", "Emote_Insult" };
 
-    protected void Awake()
+    protected virtual void Awake()
     {
+        // Needed here as Unity doesn't like calling some functions outside of Awake.
+        if (!hasDoneStaticInit)
+        {
+            hasDoneStaticInit = true;
+
+            LayerMask_PlayerCharacter = LayerMask.GetMask("PlayerCharacter");
+            LayerMask_OtherCharacter = LayerMask.GetMask("OtherCharacter");
+            LayerMask_Projectile = LayerMask.GetMask("Projectile");
+        }
+
         CharacterController = GetComponent<CharacterController>();
         Animator = GetComponent<Animator>();
 
@@ -107,9 +104,15 @@ public abstract class BaseActor : NetworkBehaviour
 
         if(IsOwner)
         {
+            transform.SetLayerRecursively(LayerMask_PlayerCharacter);
+
             ActorUI = Instantiate(actorUIPrefab, transform);
             // TODO: Init the health value from the DamageHandler instead.
             ActorUI.Init(initialHealth);
+        }
+        else
+        {
+            transform.SetLayerRecursively(LayerMask_OtherCharacter);
         }
 
         Teleport(Position.Value, Rotation.Value);
@@ -127,6 +130,8 @@ public abstract class BaseActor : NetworkBehaviour
 
     protected void Update()
     {
+        PreNetworkUpdate();
+
         if (IsOwner)
         {
             LocalUpdate();
@@ -155,21 +160,7 @@ public abstract class BaseActor : NetworkBehaviour
             Impulse = newImpulse;
         }
 
-        if (IsOwner)
-        {
-            SetPosition(transform.position);
-            SetRotation(transform.rotation);
-        }
-        else
-        {
-            // TODO: Add interp to the actor
-            timeSinceLastPositionSync += Time.deltaTime;
-            if (timeSinceLastPositionSync > 0.2f)
-            {
-                Teleport(Position.Value, Rotation.Value);
-                timeSinceLastPositionSync = 0.0f;
-            }
-        }
+        PostNetworkUpdate();
     }
 
     /// <summary>
@@ -214,9 +205,18 @@ public abstract class BaseActor : NetworkBehaviour
 
     #region General Control
 
-    public void AddLookVector(Vector2 lookInput)
+    public void SetLookVector(Vector3 newLookForward)
     {
-        // TODO: Handle up/down look
+        LookDirection = newLookForward;
+    }
+
+    public void AddLookVector(Vector3 newLookForward)
+    {
+        LookDirection += newLookForward;
+    }
+
+    public void AddLookVectorFromInput(Vector2 lookInput)
+    {
         // TODO: Handle look sensitivity
         cameraLookAngles += lookInput * 0.05f;
         cameraLookAngles.y = Mathf.Clamp(cameraLookAngles.y, -75.0f, 75.0f);
