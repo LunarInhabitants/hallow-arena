@@ -16,6 +16,10 @@ public class PlayerController : NetworkBehaviour
     [SerializeField] private PlayerCameraRig playerCameraRigPrefab;
     [SerializeField] private CharacterSelectUI characterSelectUIPrefab;
 
+    private PlayerSettings playerSettings;
+    private NetworkVariableString desiredName = new NetworkVariableString(new NetworkVariableSettings { WritePermission = NetworkVariablePermission.OwnerOnly });
+    private NetworkVariableString uniqueName = new NetworkVariableString(new NetworkVariableSettings { WritePermission = NetworkVariablePermission.ServerOnly });
+
     public bool IsUIOpen => characterSelectUI.gameObject.activeInHierarchy;
     public BaseActor Actor { get; private set; }
     public PlayerCameraRig CameraRig { get; private set; }
@@ -23,17 +27,44 @@ public class PlayerController : NetworkBehaviour
 
     public override void NetworkStart()
     {
+        if (IsServer)
+        {
+            desiredName.OnValueChanged += desiredNameChanged;
+        }
+        uniqueName.OnValueChanged += uniqueNameChanged;
+
         if (IsLocalPlayer)
         {
+            playerSettings = FindObjectOfType<PlayerSettings>();
+
+            desiredName.Value = playerSettings ? playerSettings.GetName() : "Player";
+
             LocalPlayerController = this;
             CameraRig = Instantiate(playerCameraRigPrefab, transform);
             CameraRig.SetMapVantageCamera(null); // Sets to the first vantage camera, if available.
             characterSelectUI = Instantiate(characterSelectUIPrefab, transform);
         }
         else
-        {
+        {   
             GetComponent<PlayerInput>().enabled = false;
         }
+    }
+    private void uniqueNameChanged(string previousValue, string newValue)
+    {
+        Debug.Log($"OwnerClient {OwnerClientId} name changed from \"{previousValue}\" to \"{uniqueName.Value}\"");
+    }
+
+    private void desiredNameChanged(string previousValue, string newValue)
+    {
+        
+        Debug.Log($"OwnerClient {OwnerClientId} requested name change from \"{previousValue}\" to \"{newValue}\"");
+        uniqueName.Value = validateName(newValue);
+    }
+
+    private string validateName(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) { return "Empty"; };
+        return name;
     }
 
     protected void Update()

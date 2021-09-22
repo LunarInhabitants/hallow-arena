@@ -10,15 +10,27 @@ public class MainMenuUI : MonoBehaviour
 {
     [SerializeField] private GameDatabase gameDatabase;
 
+    private PlayerSettings playerSettings;
+
     [SerializeField] private TMP_InputField playerNameInput;
     [SerializeField] private TMP_Dropdown levelSelectDropdown;
     [SerializeField] private TMP_InputField serverIpInput;
 
     private MapDefinition selectedMap;
 
-    protected void Awake()
+    protected void Start()
     {
-        playerNameInput.text = $"{System.Environment.UserName}#{Random.Range(0, 9999):0000}";
+        playerSettings = FindObjectOfType<PlayerSettings>();
+        if (playerSettings)
+        {
+            playerNameInput.text = playerSettings.GetName();
+            playerNameInput.onValueChanged.AddListener(OnPlayerNameChanged);
+        }
+        else
+        {
+            Debug.LogError("Could not find PlayerSettings");
+        }
+        
 
         levelSelectDropdown.onValueChanged.AddListener(OnSelectedLevelChanged);
         levelSelectDropdown.ClearOptions();
@@ -40,6 +52,11 @@ public class MainMenuUI : MonoBehaviour
     private void OnSelectedLevelChanged(int index)
     {
         selectedMap = gameDatabase.availableMaps[index];
+    }
+
+    private void OnPlayerNameChanged(string newName)
+    {
+        playerSettings.SetName(newName);
     }
 
     public void OnHostServerClick()
