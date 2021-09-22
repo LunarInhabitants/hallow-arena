@@ -17,7 +17,7 @@ CharacterController:
   m_StepOffset: 0.3
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Center: {x: 0, y: 1, z: 0}
 --- !u!114 &-8031180993913141780
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -30,7 +30,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dff8bad39517ef74c9534c98e547c9f2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  initialHealth: 0
+  initialHealth: 100
   actorUIPrefab: {fileID: 8283907561651171602, guid: f8c9980784b450345954b9c10ebfa9ed, type: 3}
   <Emotes>k__BackingField:
   - Emote_Wave
@@ -180,7 +180,7 @@ PrefabInstance:
     - target: {fileID: 5866666021909216657, guid: 82ce296eda3425d4ea610389dec8a2bb, type: 3}
       propertyPath: m_Controller
       value: 
-      objectReference: {fileID: 9100000, guid: 573376364f3cc3a4e865070701376b56, type: 2}
+      objectReference: {fileID: 9100000, guid: 50c7cd0cf59afdf4797e55adbc973a94, type: 2}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 82ce296eda3425d4ea610389dec8a2bb, type: 3}
 --- !u!1 &3779952767177885000 stripped

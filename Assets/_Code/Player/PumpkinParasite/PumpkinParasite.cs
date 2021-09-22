@@ -12,7 +12,7 @@ public class PumpkinParasite : BaseActor
 
     public override void BeginAttack()
     {
-        throw new System.NotImplementedException();
+        Animator.SetTrigger("AttackTrigger");
     }
 
     public override void UseAbility(int abilityIndex)
@@ -29,12 +29,6 @@ public class PumpkinParasite : BaseActor
 
     // Start is called before the first frame update
     void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
     {
         
     }
