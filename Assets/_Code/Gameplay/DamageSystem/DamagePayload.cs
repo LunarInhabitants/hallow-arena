@@ -4,16 +4,16 @@ using UnityEngine;
 
 public class DamagePayload
 {
-    private double damage;
-    private DamageType damageType;
+    private readonly float damage;
+    private readonly DamageType damageType;
 
-    public DamagePayload(double damage, DamageType damageType)
+    public DamagePayload(float damage, DamageType damageType)
     {
         this.damage = damage;
         this.damageType = damageType;
     }
 
-    public double GetDamage()
+    public float GetDamage()
     {
         return damage;
     }

@@ -5,9 +5,9 @@ using UnityEngine;
 public class DamageTaker : MonoBehaviour
 {
     [SerializeField]
-    private const double startingHP = 100D;
+    private const float startingHP = 100F;
 
-    private double currentHP;
+    private float currentHP;
 
     private void Start()
     {
@@ -18,7 +18,7 @@ public class DamageTaker : MonoBehaviour
         
     }
 
-    public double GetCurrentDamage()
+    public float GetCurrentDamage()
     {
         return currentHP;
     }
