@@ -37,4 +37,13 @@ public class TestGuardActor : BaseActor
     {
         Debug.Log($"I've used ability {abilityIndex} ");
     }
+
+    protected override void TakeDamagePayload(DamagePayload payload)
+    {
+        base.TakeDamagePayload(payload);
+        if (damageTaker.IsDead())
+            Debug.Log("I died!");
+
+        // TODO: Handle dying
+    }
 }

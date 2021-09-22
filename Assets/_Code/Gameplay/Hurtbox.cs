@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public delegate void OnHurtboxHit(Collider other, int damage, int damageType);
+public delegate void OnHurtboxHit(Collider other, int damage, DamageType damageType);
 
 [RequireComponent(typeof(Collider))]
 public class Hurtbox : MonoBehaviour
@@ -11,8 +11,7 @@ public class Hurtbox : MonoBehaviour
     [SerializeField] private Collider hurtCollider;
     [SerializeField] private bool activeOnSpawn = false;
     [SerializeField] private int damageOnHurt = 20;
-    // TODO: Convert to a damage type enum
-    [SerializeField] private int damageType = 0;
+    [SerializeField] private DamageType damageType = DamageType.Blunt;
     [SerializeField] private bool canHurtOwner = false;
 
     public GameObject Owner { get; private set; }
@@ -68,9 +67,12 @@ public class Hurtbox : MonoBehaviour
             return;
         }
 
-        // TODO: Use DamageHandler
-        // var dmgHandler = other.gameObject.GetComponent<DamageHandler>();
-        // dmgHandler.ApplyDamage(damageOnHurt, damageType, Owner);
+        DamageTaker damageTaker = other.GetComponent<DamageTaker>();
+        if(damageTaker != null)
+        {
+            damageTaker.TakeDamage(new DamagePayload(damageOnHurt, damageType));
+        }
+
 
         Debug.Log($"{Owner} hurt {other.gameObject} for {damageOnHurt} damage of type {damageType}");
 

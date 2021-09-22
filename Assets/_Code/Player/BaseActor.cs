@@ -18,6 +18,7 @@ public abstract partial class BaseActor : NetworkBehaviour
     const float MAX_AIR_IMPULSE_SPEED = 2.0f;
 
     private static bool hasDoneStaticInit = false;
+    protected DamageTaker damageTaker;
     public static LayerMask LayerMask_PlayerCharacter { get; private set; }
     public static LayerMask LayerMask_OtherCharacter { get; private set; }
     public static LayerMask LayerMask_Projectile { get; private set; }
@@ -95,7 +96,8 @@ public abstract partial class BaseActor : NetworkBehaviour
         CharacterController = GetComponent<CharacterController>();
         Animator = GetComponent<Animator>();
 
-        // TODO: Get DamageHandler component, set its health value to initialHealth and wire up 'OnDamaged' as appropiate to update the HUD.
+        damageTaker = GetComponent<DamageTaker>();
+        damageTaker.AddCallback(TakeDamagePayload);
     }
 
     public override void NetworkStart()
@@ -202,6 +204,12 @@ public abstract partial class BaseActor : NetworkBehaviour
             Animator.SetLookAtWeight(1.0f, 0.5f, 1.0f);
         }
     }
+
+    protected virtual void TakeDamagePayload(DamagePayload payload)
+    {
+        Debug.Log($"{this} took {payload.GetDamage()} {payload.GetType()} damage");
+        ActorUI.SetCurrentHealth(damageTaker.CurrentHP);
+    } 
 
     #region General Control
 
