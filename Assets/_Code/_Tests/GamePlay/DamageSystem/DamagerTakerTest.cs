@@ -13,11 +13,11 @@ public class DamagerTakerTest
         GameObject testObject = new GameObject("DamageTakerGameObject");
         testObject.AddComponent<DamageTaker>();
         DamageTaker damageTaker = testObject.GetComponent<DamageTaker>();
-        float initialHPBeforeDamage = damageTaker.GetCurrentDamage();
+        float initialHPBeforeDamage = damageTaker.CurrentHP;
         float damage = 10F;
         DamagePayload damagePayload = new DamagePayload(damage, DamageType.Blunt);
         damageTaker.TakeDamage(damagePayload);
-        Assert.That(damageTaker.GetCurrentDamage(), Is.EqualTo(initialHPBeforeDamage));
+        Assert.That(damageTaker.CurrentHP, Is.EqualTo(initialHPBeforeDamage - damage));
     }
 
 }

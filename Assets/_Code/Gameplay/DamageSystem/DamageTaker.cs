@@ -7,19 +7,19 @@ public class DamageTaker : MonoBehaviour
     [SerializeField]
     private const float startingHP = 100F;
 
-    private float currentHP;
+    [field: SerializeField]
+    public float CurrentHP
+    {
+        get; private set;
+    } 
 
     private void Start()
     {
-        currentHP = startingHP;
+        CurrentHP = startingHP;
     }
 
-    public void TakeDamage(DamagePayload incomingDamage) { 
-        
+    public void TakeDamage(DamagePayload incomingDamage) {
+        CurrentHP -= incomingDamage.GetDamage();
     }
 
-    public float GetCurrentDamage()
-    {
-        return currentHP;
-    }
 }
