@@ -72,17 +72,6 @@ public class Dbg_ConnectionUI : MonoBehaviour
             }
         }
 
-        if(PlayerController.LocalPlayerController?.Actor == null)
-        {
-            foreach(var actor in gameDatabase.availableCharacters)
-            {
-                if (GUILayout.Button($"Spawn as {actor.displayName}"))
-                {
-                    PlayerController.LocalPlayerController.SpawnAs(actor.internalID);
-                }
-            }
-        }
-
         GUILayout.Label("Transport: " + NetworkManager.Singleton.NetworkConfig.NetworkTransport.GetType().Name);
         GUILayout.Label("Mode: " + mode);
     }

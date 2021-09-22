@@ -14,9 +14,12 @@ public class PlayerController : NetworkBehaviour
 
     [SerializeField] private GameDatabase gameDatabase;
     [SerializeField] private PlayerCameraRig playerCameraRigPrefab;
+    [SerializeField] private CharacterSelectUI characterSelectUIPrefab;
 
+    public bool IsUIOpen => characterSelectUI.gameObject.activeInHierarchy;
     public BaseActor Actor { get; private set; }
     public PlayerCameraRig CameraRig { get; private set; }
+    private CharacterSelectUI characterSelectUI;
 
     public override void NetworkStart()
     {
@@ -25,6 +28,7 @@ public class PlayerController : NetworkBehaviour
             LocalPlayerController = this;
             CameraRig = Instantiate(playerCameraRigPrefab, transform);
             CameraRig.SetMapVantageCamera(null); // Sets to the first vantage camera, if available.
+            characterSelectUI = Instantiate(characterSelectUIPrefab, transform);
         }
         else
         {
@@ -32,7 +36,7 @@ public class PlayerController : NetworkBehaviour
         }
     }
 
-    void Update()
+    protected void Update()
     {
         if (Actor == null)
         {
@@ -51,6 +55,7 @@ public class PlayerController : NetworkBehaviour
 
     public void SpawnAs(string actorID)
     {
+        Actor = null;
         SpawnPlayerObjectServerRpc(OwnerClientId, actorID);
         StartCoroutine(PostCharacterSpawn());
     }
@@ -218,9 +223,23 @@ public class PlayerController : NetworkBehaviour
         }
     }
 
+    public void OnPause(InputValue inputValue)
+    {
+        // TODO: Open the pause menu
+    }
+
+    public void OnChangeCharacter(InputValue inputValue)
+    {
+        if (inputValue.isPressed)
+        {
+            characterSelectUI.gameObject.SetActive(true);
+            characterSelectUI.transform.SetSiblingIndex(transform.childCount);
+        }
+    }
+
     #endregion Controls Events
 
-    [ServerRpc]
+[ServerRpc]
     public void SpawnPlayerObjectServerRpc(ulong clientID, string actorID)
     {
         ActorDefinition actorDef = gameDatabase.availableCharacters.FirstOrDefault(a => a.internalID.Equals(actorID, StringComparison.OrdinalIgnoreCase));
@@ -235,6 +254,12 @@ public class PlayerController : NetworkBehaviour
         {
             Debug.LogError($"Could not spawn character with ID {actorID} - Actor prefab in definition was null.");
             return;
+        }
+
+        if(Actor != null)
+        {
+            Actor.NetworkObject.Despawn(true);
+            Actor = null;
         }
 
         BaseActor ba = Instantiate(actorDef.prefab, transform);

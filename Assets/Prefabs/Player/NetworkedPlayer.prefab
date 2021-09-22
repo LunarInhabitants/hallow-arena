@@ -47,6 +47,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   gameDatabase: {fileID: 11400000, guid: 6ec5ba2c555d1fa4194579a16134dd40, type: 2}
   playerCameraRigPrefab: {fileID: 7725767964778289436, guid: 80357065206a991498efc008b5ad8d39, type: 3}
+  characterSelectUIPrefab: {fileID: 2628111022082789566, guid: ccd3e7571b7c57e46ae42ef513a61668, type: 3}
 --- !u!114 &2308247825992639317
 MonoBehaviour:
   m_ObjectHideFlags: 0

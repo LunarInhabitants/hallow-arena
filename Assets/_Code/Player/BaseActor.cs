@@ -172,7 +172,7 @@ public abstract partial class BaseActor : NetworkBehaviour
         targetForward.y = 0.0f;
         transform.forward = targetForward.normalized;
 
-        if (CameraRig != null && CameraRig.CameraMode != CameraMode.IsometricCamera) // TODO: Dev check. Remove this block if isometric camera is removed
+        if (CameraRig != null && CameraRig.CameraMode != CameraMode.IsometricCamera && !ParentController.IsUIOpen) // TODO: Dev check. Remove this block if isometric camera is removed
         {
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
@@ -285,6 +285,7 @@ public abstract partial class BaseActor : NetworkBehaviour
             }
         }
     }
+
 
     #endregion
 
