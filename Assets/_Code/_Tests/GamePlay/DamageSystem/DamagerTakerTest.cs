@@ -13,8 +13,8 @@ public class DamagerTakerTest
         GameObject testObject = new GameObject("DamageTakerGameObject");
         testObject.AddComponent<DamageTaker>();
         DamageTaker damageTaker = testObject.GetComponent<DamageTaker>();
-        float initialHPBeforeDamage = damageTaker.CurrentHP;
-        float damage = 10F;
+        int initialHPBeforeDamage = damageTaker.CurrentHP;
+        int damage = 10;
         DamagePayload damagePayload = new DamagePayload(damage, DamageType.Blunt);
         damageTaker.TakeDamage(damagePayload);
         Assert.That(damageTaker.CurrentHP, Is.EqualTo(initialHPBeforeDamage - damage));

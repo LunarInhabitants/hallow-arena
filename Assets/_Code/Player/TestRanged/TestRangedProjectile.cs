@@ -48,7 +48,7 @@ public class TestRangedProjectile : MonoBehaviour
         }
     }
 
-    private void OnHit(Collider other, int hitDamage, int hitType)
+    private void OnHit(Collider other, int hitDamage, DamageType hitType)
     {
         if (gameObject != null)
         {

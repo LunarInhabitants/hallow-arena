@@ -10,7 +10,7 @@ public class DamagePayloadTest
     [Test]
     public void DamagePayloadCanBeSetToMinusToAllowHealing()
     {
-        float minusDamage = -1F;
+        int minusDamage = -1;
         DamagePayload damagePayload = new DamagePayload(minusDamage, DamageType.Blunt);
         Assert.That(damagePayload.GetDamage, Is.EqualTo(minusDamage));
     }

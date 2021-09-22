@@ -1,25 +1,48 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class DamageTaker : MonoBehaviour
 {
-    [SerializeField]
-    private const float startingHP = 100F;
 
+    public List<Action<DamagePayload>> EventHandlers { get; private set; } = new List<Action<DamagePayload>>();
+
+    [SerializeField]
+    private const int startingHP = 100;
     [field: SerializeField]
-    public float CurrentHP
+    public int CurrentHP
     {
         get; private set;
     } 
 
-    private void Start()
+    protected void Start()
     {
         CurrentHP = startingHP;
     }
 
-    public void TakeDamage(DamagePayload incomingDamage) {
-        CurrentHP -= incomingDamage.GetDamage();
+    /// <summary>
+    /// Deliver Damage Payload to entity
+    /// If damage is below zero it is treated as a healing effect
+    /// </summary>
+    /// <param name="incomingPayload"></param>
+    public void TakeDamage(DamagePayload incomingPayload) {
+        CurrentHP -= incomingPayload.GetDamage();
+        foreach (var callback in EventHandlers)
+        {
+            callback(incomingPayload);
+        }
+    }
+
+    public bool IsDead()
+    {
+        return CurrentHP <= 0;
+    }
+
+
+    public void AddCallback(Action<DamagePayload> callback)
+    {
+        EventHandlers.Add(callback);
     }
 
 }
