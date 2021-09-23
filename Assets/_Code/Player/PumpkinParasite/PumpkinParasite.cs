@@ -9,6 +9,8 @@ public class PumpkinParasite : BaseActor
     [SerializeField] private PumpkinSeedProjectile pumpkinProjectilePrefab;
     [SerializeField] private Transform castPoint;
 
+    private readonly int volleyCount = 5;
+
     public void Start()
     {
         slashHurtbox.SetOwner(gameObject);
@@ -43,21 +45,31 @@ public class PumpkinParasite : BaseActor
 
     public void DoSeedVolley()
     {
-        Vector3 direction;
-        if (Physics.Raycast(CameraRig.VirtualCamera.transform.position, CameraRig.VirtualCamera.transform.forward, out RaycastHit hit, 1024.0f, ~(LayerMask_PlayerCharacter | LayerMask_Projectile)))
-        {
-            Debug.Log(hit.collider);
-            Debug.Log(hit.collider.gameObject);
-            Vector3 target = hit.point;
-            direction = (target - castPoint.position).normalized;
-        }
-        else
-        {
-            direction = CameraRig.VirtualCamera.transform.forward.normalized;
-        }
+        StartCoroutine(HandleSeedVolley());
+    }
 
-        // Projectile pooling?
-        PumpkinSeedProjectile proj = Instantiate(pumpkinProjectilePrefab, castPoint.position, Quaternion.identity);
-        proj.Init(gameObject, direction);
+    public IEnumerator HandleSeedVolley()
+    {
+        Vector3 direction;
+
+        for (int i = 0; i < volleyCount; i++)
+        {
+            if (Physics.Raycast(CameraRig.VirtualCamera.transform.position, CameraRig.VirtualCamera.transform.forward, out RaycastHit hit, 1024.0f, ~(LayerMask_PlayerCharacter | LayerMask_Projectile)))
+            {
+                Debug.Log(hit.collider);
+                Debug.Log(hit.collider.gameObject);
+                Vector3 target = hit.point;
+                direction = (target - castPoint.position).normalized;
+            }
+            else
+            {
+                direction = CameraRig.VirtualCamera.transform.forward.normalized;
+            }
+
+            // Projectile pooling?
+            PumpkinSeedProjectile proj = Instantiate(pumpkinProjectilePrefab, castPoint.position, Quaternion.identity);
+            proj.Init(gameObject, direction);
+            yield return new WaitForSeconds(0.1f);
+        }
     }
 }
