@@ -10,39 +10,15 @@ using UnityEngine;
 /// This essentially acts like a puppet to be controlled by a parent controller, either a player or an AI.
 /// </summary>
 [RequireComponent(typeof(Animator), typeof(CharacterController))]
-public abstract partial class BaseActor : NetworkBehaviour
+public abstract class BaseActor : NetworkBehaviour
 {
     const float PLAYER_MOVEMENT_ACCEL = 8.0f;
     const float IMPULSE_DECAY_MULT = 5.0f;
     /// <summary>This is what speed the x and z impulese velocities decay to when in the air, rather than 0.</summary>
     const float MAX_AIR_IMPULSE_SPEED = 2.0f;
 
-    private static bool hasDoneStaticInit = false;
-    protected DamageTaker damageTaker;
-    public static LayerMask LayerMask_PlayerCharacter { get; private set; }
-    public static LayerMask LayerMask_OtherCharacter { get; private set; }
-    public static LayerMask LayerMask_Projectile { get; private set; }
-
-    #region Variables
-
-    [SerializeField] private int initialHealth;
-
-    [SerializeField] private ActorUI actorUIPrefab;
-    public ActorUI ActorUI { get; private set; }
-
-    #endregion Variables
 
     #region Components
-
-    /// <summary>
-    /// The direct parent controller for this actor.
-    /// </summary>
-    public PlayerController ParentController { get; private set; }
-
-    /// <summary>
-    /// This character's camera rig. Only valid on a local player.
-    /// </summary>
-    public PlayerCameraRig CameraRig { get; private set; }
 
     /// <summary>
     /// The Unity <see cref="Animator"/> attached to this Actor.
@@ -56,12 +32,29 @@ public abstract partial class BaseActor : NetworkBehaviour
 
     #endregion Components
 
+    #region Networked Variables
+
+    public NetworkVariableVector3 Position = new NetworkVariableVector3(new NetworkVariableSettings
+    {
+        WritePermission = NetworkVariablePermission.ServerOnly,
+        ReadPermission = NetworkVariablePermission.Everyone
+    });
+
+    public NetworkVariableQuaternion Rotation = new NetworkVariableQuaternion(new NetworkVariableSettings
+    {
+        WritePermission = NetworkVariablePermission.ServerOnly,
+        ReadPermission = NetworkVariablePermission.Everyone
+    });
+
+    private float timeSinceLastPositionSync = 0.0f;
+
+    #endregion Networked Variables
+
     /// <summary>
     /// A vector describing 3D motion of the character, with +Z being forwards from where I'm looking and +X being right.
     /// </summary>
     public Vector3 OrientatedMovementVector { get; private set; }
-    private Vector2 cameraLookAngles = new Vector2();
-    public Vector3 LookDirection { get; private set; } = Vector3.forward;
+    private Vector3 targetForward = Vector3.forward;
     private Vector3 lastOrientatedVelocity = Vector3.zero;
 
     /// <summary>
@@ -81,59 +74,21 @@ public abstract partial class BaseActor : NetworkBehaviour
     /// </summary>
     [field: SerializeField] public string[] Emotes { get; private set; } = new[] { "Emote_Wave", "Emote_Point", "Emote_Insult" };
 
-    protected virtual void Awake()
+    protected void Awake()
     {
-        // Needed here as Unity doesn't like calling some functions outside of Awake.
-        if (!hasDoneStaticInit)
-        {
-            hasDoneStaticInit = true;
-
-            LayerMask_PlayerCharacter = LayerMask.GetMask("PlayerCharacter");
-            LayerMask_OtherCharacter = LayerMask.GetMask("OtherCharacter");
-            LayerMask_Projectile = LayerMask.GetMask("Projectile");
-        }
-
         CharacterController = GetComponent<CharacterController>();
         Animator = GetComponent<Animator>();
-
-        damageTaker = GetComponent<DamageTaker>();
-        damageTaker.AddCallback(TakeDamagePayload);
     }
 
     public override void NetworkStart()
     {
         base.NetworkStart();
 
-        if(IsOwner)
-        {
-            transform.SetLayerRecursively(LayerMask_PlayerCharacter);
-
-            ActorUI = Instantiate(actorUIPrefab, transform);
-            // TODO: Init the health value from the DamageHandler instead.
-            ActorUI.Init(initialHealth);
-        }
-        else
-        {
-            transform.SetLayerRecursively(LayerMask_OtherCharacter);
-        }
-
         Teleport(Position.Value, Rotation.Value);
-    }
-
-    public void OnCreatedByPlayerController(PlayerController creator)
-    {
-        ParentController = creator;
-    }
-
-    public void OnCameraRigAttached(PlayerCameraRig rig)
-    {
-        CameraRig = rig;
     }
 
     protected void Update()
     {
-        PreNetworkUpdate();
-
         if (IsOwner)
         {
             LocalUpdate();
@@ -162,7 +117,22 @@ public abstract partial class BaseActor : NetworkBehaviour
             Impulse = newImpulse;
         }
 
-        PostNetworkUpdate();
+        if(IsOwner)
+        {
+            SetPosition(transform.position);
+            SetRotation(transform.rotation);
+        }
+        else
+        {
+            // TODO: Add interp to the actor
+            timeSinceLastPositionSync += Time.deltaTime;
+            if (timeSinceLastPositionSync > 0.2f)
+            {
+                Debug.Log(Position.Value);
+                Teleport(Position.Value, Rotation.Value);
+                timeSinceLastPositionSync = 0.0f;
+            }
+        }
     }
 
     /// <summary>
@@ -170,20 +140,7 @@ public abstract partial class BaseActor : NetworkBehaviour
     /// </summary>
     protected virtual void LocalUpdate()
     {
-        Vector3 targetForward = LookDirection;
-        targetForward.y = 0.0f;
-        transform.forward = targetForward.normalized;
-
-        if (CameraRig != null && CameraRig.CameraMode != CameraMode.IsometricCamera && !ParentController.IsUIOpen) // TODO: Dev check. Remove this block if isometric camera is removed
-        {
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
-        }
-        else
-        {
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
-        }
+        transform.forward = Vector3.Lerp(transform.forward, targetForward, 0.2f);
 
         // Orientates the animations based on true velocity - Means things like capes and such can be affected by knockback.
         Vector3 currentOrientatedVelocity = OrientatedMovementVector + transform.rotation * Impulse;
@@ -195,42 +152,7 @@ public abstract partial class BaseActor : NetworkBehaviour
         Animator.SetFloat("VelocityRight", lastOrientatedVelocity.x * lastMoveSpeedMultiplier);
     }
 
-    protected void OnAnimatorIK(int layerIndex)
-    {
-        Transform head = Animator.GetBoneTransform(HumanBodyBones.Head);
-        if (head != null)
-        {
-            Animator.SetLookAtPosition(head.position + LookDirection);
-            Animator.SetLookAtWeight(1.0f, 0.5f, 1.0f);
-        }
-    }
-
-    protected virtual void TakeDamagePayload(DamagePayload payload)
-    {
-        Debug.Log($"{this} took {payload.GetDamage()} {payload.GetType()} damage");
-        ActorUI.SetCurrentHealth(damageTaker.CurrentHP);
-    } 
-
     #region General Control
-
-    public void SetLookVector(Vector3 newLookForward)
-    {
-        LookDirection = newLookForward;
-    }
-
-    public void AddLookVector(Vector3 newLookForward)
-    {
-        LookDirection += newLookForward;
-    }
-
-    public void AddLookVectorFromInput(Vector2 lookInput)
-    {
-        // TODO: Handle look sensitivity
-        cameraLookAngles += lookInput * 0.05f;
-        cameraLookAngles.y = Mathf.Clamp(cameraLookAngles.y, -75.0f, 75.0f);
-
-        LookDirection = Quaternion.Euler(-cameraLookAngles.y, cameraLookAngles.x, 0.0f) * Vector3.forward;
-    }
 
     /// <summary>
     /// Makes the character jump.
@@ -277,23 +199,7 @@ public abstract partial class BaseActor : NetworkBehaviour
         {
             SetAnimationTrigger(Emotes[emoteIndex - 1]);
         }
-
-        // TESTING
-        if(ActorUI != null)
-        {
-            if (emoteIndex == 1)
-            {
-                // TEST HEAL
-                ActorUI.SetCurrentHealth(initialHealth);
-            }
-            else if(emoteIndex == 2)
-            {
-                // TEST HURT
-                ActorUI.SetCurrentHealth(initialHealth / 2);
-            }
-        }
     }
-
 
     #endregion
 
@@ -323,7 +229,7 @@ public abstract partial class BaseActor : NetworkBehaviour
 
     public void SetForward(Vector3 forward)
     {
-        LookDirection = forward;
+        targetForward = forward;
     }
 
     public void SetMoveSpeedMultiplier(float newMult)
@@ -339,15 +245,15 @@ public abstract partial class BaseActor : NetworkBehaviour
         if(IsOwner)
         {
             transform.position = newPosition;
+        }
 
-            if (IsServer)
-            {
-                Position.Value = newPosition;
-            }
-            else
-            {
-                _SetPositionServerRpc(newPosition);
-            }
+        if (IsServer)
+        {
+            Position.Value = newPosition;
+        }
+        else
+        {
+            _SetPositionServerRpc(newPosition);
         }
     }
 
@@ -362,15 +268,15 @@ public abstract partial class BaseActor : NetworkBehaviour
         if (IsOwner)
         {
             transform.rotation = newRotation;
+        }
 
-            if (IsServer)
-            {
-                Rotation.Value = newRotation;
-            }
-            else
-            {
-                _SetRotationServerRpc(newRotation);
-            }
+        if (IsServer)
+        {
+            Rotation.Value = newRotation;
+        }
+        else
+        {
+            _SetRotationServerRpc(newRotation);
         }
     }
 

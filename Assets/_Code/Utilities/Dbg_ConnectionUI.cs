@@ -6,7 +6,6 @@ public class Dbg_ConnectionUI : MonoBehaviour
 {
     public string targetIP = "127.0.0.1";
     public int targetPort = 7777;
-    public GameDatabase gameDatabase;
 
     void OnGUI()
     {
@@ -52,7 +51,7 @@ public class Dbg_ConnectionUI : MonoBehaviour
         }
     }
 
-    void StatusLabels()
+    static void StatusLabels()
     {
         var mode = NetworkManager.Singleton.IsHost ? "Host" : NetworkManager.Singleton.IsServer ? "Server" : "Client";
 
@@ -69,6 +68,18 @@ public class Dbg_ConnectionUI : MonoBehaviour
             else if (NetworkManager.Singleton.IsServer)
             {
                 NetworkManager.Singleton.StopServer();
+            }
+        }
+
+        if(PlayerController.LocalPlayerController?.Actor == null)
+        {
+            if(GUILayout.Button("Spawn as Melee"))
+            {
+                PlayerController.LocalPlayerController.SpawnAsMelee();
+            }
+            if (GUILayout.Button("Spawn as Ranged"))
+            {
+                PlayerController.LocalPlayerController.SpawnAsRanged();
             }
         }
 
