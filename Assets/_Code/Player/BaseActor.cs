@@ -289,7 +289,8 @@ public abstract partial class BaseActor : NetworkBehaviour
             else if(emoteIndex == 2)
             {
                 // TEST HURT
-                ActorUI.SetCurrentHealth(initialHealth / 2);
+                DamagePayload payload = new DamagePayload(10, DamageType.Blunt);
+                damageTaker.TakeDamage(payload);
             }
         }
     }
