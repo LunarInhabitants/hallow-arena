@@ -6,11 +6,12 @@ using UnityEngine.VFX;
 public class PumpkinSeedProjectile : MonoBehaviour
 {
     [SerializeField] private float maxLifetime = 4.0f;
-    [SerializeField] private float speed = 16.0f;
+    [SerializeField] private float speed = 64.0f;
     [SerializeField] private VisualEffect explodeEffect;
 
     private Rigidbody myRigidbody;
     private Hurtbox myHurtbox;
+    private MeshRenderer myModel;
     private Vector3 direction;
     private float lifetime = 0.0f;
     private bool isInKillStage = false;
@@ -20,18 +21,19 @@ public class PumpkinSeedProjectile : MonoBehaviour
     {
         myRigidbody = GetComponent<Rigidbody>();
         myRigidbody.isKinematic = true;
-        myHurtbox = GetComponent<Hurtbox>();
+        myModel = GetComponentInChildren<MeshRenderer>();
     }
 
     public void Init(GameObject owner, Vector3 forwardDirection)
     {
+        myHurtbox = GetComponent<Hurtbox>();
         direction = forwardDirection;
         myHurtbox.SetOwner(owner);
         myHurtbox.AddOnHitCallback(OnHit);
         myHurtbox.Activate();
     }
 
-    private void OnHit(Collider other, int hitDamage, int hitType)
+    private void OnHit(Collider other, int hitDamage, DamageType hitType)
     {
         if (gameObject != null)
         {
@@ -43,6 +45,7 @@ public class PumpkinSeedProjectile : MonoBehaviour
     {
         isInKillStage = true;
         myHurtbox.Deactivate();
+        myModel.enabled = false;
         explodeEffect.enabled = true;
         yield return new WaitForSeconds(1.0f);
         Destroy(gameObject);

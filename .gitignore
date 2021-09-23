@@ -61,3 +61,5 @@ crashlytics-build.properties
 
 UserSettings
 sh.exe.stackdump
+.vscode/
+ProjectSettings/Packages/com.unity.probuilder/Settings.json

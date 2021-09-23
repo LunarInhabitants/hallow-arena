@@ -5,10 +5,14 @@ using UnityEngine.VFX;
 
 public class PumpkinParasite : BaseActor
 {
-    [SerializeField] private Hurtbox swordHurtbox;
-    [SerializeField] private PumpkinSeedProjectile pumpkinProjectile;
+    [SerializeField] private Hurtbox slashHurtbox;
+    [SerializeField] private PumpkinSeedProjectile pumpkinProjectilePrefab;
+    [SerializeField] private Transform castPoint;
 
-
+    public void Start()
+    {
+        slashHurtbox.SetOwner(gameObject);
+    }
 
     public override void BeginAttack()
     {
@@ -22,14 +26,38 @@ public class PumpkinParasite : BaseActor
         switch(abilityIndex)
         {
             case 1:
-                Animator.SetTrigger("SeedVolley");
+                Animator.SetTrigger("VolleyTrigger");
                 break;
         }
     }
 
-    // Start is called before the first frame update
-    void Start()
+    public void StartSlashAttack()
     {
-        
+        slashHurtbox.Activate();
+    }
+
+    public void EndSlashAttack()
+    {
+        slashHurtbox.Deactivate();
+    }
+
+    public void DoSeedVolley()
+    {
+        Vector3 direction;
+        if (Physics.Raycast(CameraRig.VirtualCamera.transform.position, CameraRig.VirtualCamera.transform.forward, out RaycastHit hit, 1024.0f, ~(LayerMask_PlayerCharacter | LayerMask_Projectile)))
+        {
+            Debug.Log(hit.collider);
+            Debug.Log(hit.collider.gameObject);
+            Vector3 target = hit.point;
+            direction = (target - castPoint.position).normalized;
+        }
+        else
+        {
+            direction = CameraRig.VirtualCamera.transform.forward.normalized;
+        }
+
+        // Projectile pooling?
+        PumpkinSeedProjectile proj = Instantiate(pumpkinProjectilePrefab, castPoint.position, Quaternion.identity);
+        proj.Init(gameObject, direction);
     }
 }
