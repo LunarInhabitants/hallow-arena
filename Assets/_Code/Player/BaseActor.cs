@@ -9,7 +9,7 @@ using UnityEngine;
 /// The basic implementation of a character 'actor'.<para/>
 /// This essentially acts like a puppet to be controlled by a parent controller, either a player or an AI.
 /// </summary>
-[RequireComponent(typeof(Animator), typeof(CharacterController))]
+[RequireComponent(typeof(Animator), typeof(CharacterController), typeof(DamageTaker))]
 public abstract partial class BaseActor : NetworkBehaviour
 {
     const float PLAYER_MOVEMENT_ACCEL = 8.0f;

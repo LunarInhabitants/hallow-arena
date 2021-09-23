@@ -4,7 +4,8 @@
     "references": [
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
-        "HallowArena"
+        "HallowArena",
+        "Unity.Multiplayer.MLAPI.Runtime"
     ],
     "includePlatforms": [
         "Editor"

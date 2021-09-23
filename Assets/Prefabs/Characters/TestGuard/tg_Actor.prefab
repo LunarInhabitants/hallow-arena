@@ -92,12 +92,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d678a21cf518d284682bbb29ecf3053c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  initialHealth: 100
-  actorUIPrefab: {fileID: 8283907561651171602, guid: 4442fb601798048489c5975dcc30f834, type: 3}
   Position:
     m_InternalValue: {x: 0, y: 0, z: 0}
   Rotation:
     m_InternalValue: {x: 0, y: 0, z: 0, w: 0}
+  initialHealth: 100
+  actorUIPrefab: {fileID: 8283907561651171602, guid: 4442fb601798048489c5975dcc30f834, type: 3}
   <Emotes>k__BackingField:
   - Emote_Wave
   - Emote_Point
@@ -183,6 +183,19 @@ MonoBehaviour:
   PrefabHashGenerator: TestGuard_Actor
   AlwaysReplicateAsRoot: 0
   DontDestroyWithOwner: 0
+--- !u!114 &1425489093720083556
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4935938122288389442}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2f3c2ad69f46ae74ea301589e5e78f61, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  <CurrentHP>k__BackingField: 100
 --- !u!1001 &5241785637639806995
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -340,7 +353,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 5b9e89dacd059d64eb137d660d70121f, type: 3}
       propertyPath: m_Name
-      value: TestGuard_Actor
+      value: tg_Actor
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 5b9e89dacd059d64eb137d660d70121f, type: 3}
       propertyPath: m_Layer

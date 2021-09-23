@@ -110,18 +110,31 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b963e40ef197e344ba8adf58bb008804, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Position:
+    m_InternalValue: {x: 0, y: 0, z: 0}
+  Rotation:
+    m_InternalValue: {x: 0, y: 0, z: 0, w: 0}
   initialHealth: 75
   actorUIPrefab: {fileID: 8332796560778597014, guid: da5260157fd7b0940bdee77b913e1291, type: 3}
   <Emotes>k__BackingField:
   - Emote_Wave
   - Emote_Point
   - Emote_Insult
-  Position:
-    m_InternalValue: {x: 0, y: 0, z: 0}
-  Rotation:
-    m_InternalValue: {x: 0, y: 0, z: 0, w: 0}
   castProjectilePrefab: {fileID: 5539094098859377834, guid: faf56a574dcfb024fbeb9b7bfa0f92b9, type: 3}
   castPoint: {fileID: 546960817381538334}
+--- !u!114 &4016026365311163659
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7924844351730198818}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2f3c2ad69f46ae74ea301589e5e78f61, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  <CurrentHP>k__BackingField: 100
 --- !u!1001 &7006433487572866163
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -275,7 +288,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: e787610356a160747a0e9a86eba045bd, type: 3}
       propertyPath: m_Name
-      value: TestRanged_Actor
+      value: tr_Actor
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: e787610356a160747a0e9a86eba045bd, type: 3}
       propertyPath: m_Layer
