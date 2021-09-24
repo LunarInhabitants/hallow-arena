@@ -4,23 +4,14 @@ using UnityEngine;
 
 public class DamagePayload
 {
-    private readonly int damage;
-    private readonly DamageType damageType;
+    public int Damage { get; set; }
+    public DamageType DamageType { get; set; }
+
+    public DamagePayload() { } // Allows the use of init construction
 
     public DamagePayload(int damage, DamageType damageType)
     {
-        this.damage = damage;
-        this.damageType = damageType;
+        this.Damage = damage;
+        this.DamageType = damageType;
     }
-
-    public int GetDamage()
-    {
-        return damage;
-    }
-
-    public DamageType GetDamageType()
-    {
-        return damageType;
-    }
-
 }

@@ -5,20 +5,33 @@ using UnityEngine;
 
 public class DamageTaker : MonoBehaviour
 {
-
     public List<Action<DamagePayload>> EventHandlers { get; private set; } = new List<Action<DamagePayload>>();
 
-    [SerializeField]
-    private const int startingHP = 100;
-    [field: SerializeField]
-    public int CurrentHP
-    {
-        get; private set;
-    } 
+    [field: SerializeField] public int MaxHP { get; private set; } = 100;
+    [field: SerializeField] public int CurrentHP { get; private set; } = 100;
+    [field: SerializeField] public bool AllowNegativeHealth { get; private set; } = false;
 
-    protected void Start()
+    public bool IsDead => CurrentHP <= 0;
+
+
+    protected void Awake()
     {
-        CurrentHP = startingHP;
+        CurrentHP = MaxHP;
+    }
+
+    /// <summary>
+    /// Sets the max HP, optionally setting the current HP as well.
+    /// </summary>
+    /// <param name="newMax">The new maximum HP.</param>
+    /// <param name="setCurrentHP">If <see langword="true"/>, also set <see cref="CurrentHP"/> to the new maximum value.</param>
+    public void SetMaxHP(int newMax, bool setCurrentHP = false)
+    {
+        MaxHP = Mathf.Max(1, newMax);
+
+        if(setCurrentHP)
+        {
+            CurrentHP = MaxHP;
+        }
     }
 
     /// <summary>
@@ -26,17 +39,19 @@ public class DamageTaker : MonoBehaviour
     /// If damage is below zero it is treated as a healing effect
     /// </summary>
     /// <param name="incomingPayload"></param>
-    public void TakeDamage(DamagePayload incomingPayload) {
-        CurrentHP -= incomingPayload.GetDamage();
+    public void TakeDamage(DamagePayload incomingPayload)
+    {
+        CurrentHP = Mathf.Min(MaxHP, CurrentHP - incomingPayload.Damage);
+
+        if(!AllowNegativeHealth && CurrentHP < 0)
+        {
+            CurrentHP = 0;
+        }
+
         foreach (var callback in EventHandlers)
         {
             callback(incomingPayload);
         }
-    }
-
-    public bool IsDead()
-    {
-        return CurrentHP <= 0;
     }
 
 

@@ -1,6 +1,7 @@
 using MLAPI;
 using MLAPI.Messaging;
 using MLAPI.NetworkVariable;
+using MLAPI.Prototyping;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -9,7 +10,8 @@ using UnityEngine;
 /// The basic implementation of a character 'actor'.<para/>
 /// This essentially acts like a puppet to be controlled by a parent controller, either a player or an AI.
 /// </summary>
-[RequireComponent(typeof(Animator), typeof(CharacterController))]
+[RequireComponent(typeof(Animator), typeof(CharacterController), typeof(DamageTaker))]
+[RequireComponent(typeof(NetworkObject), typeof(NetworkTransform), typeof(NetworkAnimator))]
 public abstract partial class BaseActor : NetworkBehaviour
 {
     const float PLAYER_MOVEMENT_ACCEL = 8.0f;
@@ -18,7 +20,6 @@ public abstract partial class BaseActor : NetworkBehaviour
     const float MAX_AIR_IMPULSE_SPEED = 2.0f;
 
     private static bool hasDoneStaticInit = false;
-    protected DamageTaker damageTaker;
     public static LayerMask LayerMask_PlayerCharacter { get; private set; }
     public static LayerMask LayerMask_OtherCharacter { get; private set; }
     public static LayerMask LayerMask_Projectile { get; private set; }
@@ -53,6 +54,11 @@ public abstract partial class BaseActor : NetworkBehaviour
     /// The Unity <see cref="CharacterController"/> attached to this Actor.
     /// </summary>
     public CharacterController CharacterController { get; private set; }
+
+    /// <summary>
+    /// Handles the heatlh and damage of this actor.
+    /// </summary>
+    public DamageTaker DamageTaker { get; private set; }
 
     #endregion Components
 
@@ -95,9 +101,9 @@ public abstract partial class BaseActor : NetworkBehaviour
 
         CharacterController = GetComponent<CharacterController>();
         Animator = GetComponent<Animator>();
-
-        damageTaker = GetComponent<DamageTaker>();
-        damageTaker.AddCallback(TakeDamagePayload);
+        DamageTaker = GetComponent<DamageTaker>();
+        DamageTaker.SetMaxHP(initialHealth, true);
+        DamageTaker.AddCallback(OnHurt);
     }
 
     public override void NetworkStart()
@@ -205,11 +211,23 @@ public abstract partial class BaseActor : NetworkBehaviour
         }
     }
 
-    protected virtual void TakeDamagePayload(DamagePayload payload)
+    protected virtual void OnHurt(DamagePayload payload)
     {
-        Debug.Log($"{this} took {payload.GetDamage()} {payload.GetType()} damage");
-        ActorUI.SetCurrentHealth(damageTaker.CurrentHP);
+        Debug.Log($"{this} took {payload.Damage} {payload.DamageType} damage");
+        ActorUI.SetCurrentHealth(Mathf.Max(0, DamageTaker.CurrentHP));
+
+        if(DamageTaker.CurrentHP <= 0)
+        {
+            OnDied();
+        }
     } 
+
+    protected virtual void OnDied()
+    {
+        Debug.Log($"{this} died!");
+
+        // TODO: Handle dying
+    }
 
     #region General Control
 
@@ -284,12 +302,14 @@ public abstract partial class BaseActor : NetworkBehaviour
             if (emoteIndex == 1)
             {
                 // TEST HEAL
-                ActorUI.SetCurrentHealth(initialHealth);
+                DamagePayload payload = new DamagePayload(-10, DamageType.Generic);
+                DamageTaker.TakeDamage(payload);
             }
             else if(emoteIndex == 2)
             {
                 // TEST HURT
-                ActorUI.SetCurrentHealth(initialHealth / 2);
+                DamagePayload payload = new DamagePayload(10, DamageType.Blunt);
+                DamageTaker.TakeDamage(payload);
             }
         }
     }

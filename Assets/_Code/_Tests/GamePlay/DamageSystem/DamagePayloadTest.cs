@@ -12,6 +12,6 @@ public class DamagePayloadTest
     {
         int minusDamage = -1;
         DamagePayload damagePayload = new DamagePayload(minusDamage, DamageType.Blunt);
-        Assert.That(damagePayload.GetDamage, Is.EqualTo(minusDamage));
+        Assert.That(damagePayload.Damage, Is.EqualTo(minusDamage));
     }
 }
