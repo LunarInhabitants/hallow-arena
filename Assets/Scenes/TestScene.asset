@@ -14,6 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sceneBuildIndex: 1
   displayName: Test Map
-  gameMode: Deathmatch
   description: A test map
+  supportedGameModes:
+  - {fileID: 739867931727236508, guid: d3887f5c4defb5c41b64ce9031280df8, type: 3}
+  - {fileID: 739867931727236508, guid: 9941ca5d6ba90d8458ebddab8924da4b, type: 3}
   icon: {fileID: 0}

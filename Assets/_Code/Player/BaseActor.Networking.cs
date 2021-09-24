@@ -8,13 +8,13 @@ public partial class BaseActor
 {
     #region Networked Variables
 
-    public NetworkVariableVector3 Position = new NetworkVariableVector3(new NetworkVariableSettings
+    public NetworkVariableVector3 _Net_Position = new NetworkVariableVector3(new NetworkVariableSettings
     {
         WritePermission = NetworkVariablePermission.ServerOnly,
         ReadPermission = NetworkVariablePermission.Everyone
     });
 
-    public NetworkVariableQuaternion Rotation = new NetworkVariableQuaternion(new NetworkVariableSettings
+    public NetworkVariableVector3 _Net_LookDirection = new NetworkVariableVector3(new NetworkVariableSettings
     {
         WritePermission = NetworkVariablePermission.ServerOnly,
         ReadPermission = NetworkVariablePermission.Everyone
@@ -32,7 +32,8 @@ public partial class BaseActor
             timeSinceLastPositionSync += Time.deltaTime;
             if (timeSinceLastPositionSync > 0.2f)
             {
-                Teleport(Position.Value, Rotation.Value);
+                transform.position = _Net_Position.Value;
+                LookDirection = _Net_LookDirection.Value;
                 timeSinceLastPositionSync = 0.0f;
             }
         }
@@ -43,7 +44,7 @@ public partial class BaseActor
         if (IsOwner)
         {
             SetPosition(transform.position);
-            SetRotation(transform.rotation);
+            SetLookDirection(LookDirection);
         }
     }
 }

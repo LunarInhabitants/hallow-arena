@@ -36,4 +36,28 @@ public static class Transform_Extensions
             transform.GetChild(i).SetLayerRecursively(layerNumber);
         }
     }
+
+    /// <summary>
+    /// Sets the transform's position, rotation and scale to the supplied matrix.
+    /// </summary>
+    /// <param name="transform">The trasform for which we're applying the matrix.</param>
+    /// <param name="matrix">The matrix to apply to the transform.</param>
+    public static void SetMatrix(this Transform transform, Matrix4x4 matrix)
+    {
+        transform.localScale = matrix.ExtractScale();
+        transform.rotation = matrix.ExtractRotation();
+        transform.position = matrix.ExtractPosition();
+    }
+
+    /// <summary>
+    /// Destoys all child objects.
+    /// </summary>
+    /// <param name="transform">The transform whose children are to be destroyed.</param>
+    public static void DestroyAllChildren(this Transform transform)
+    {
+        for (int i = transform.childCount - 1; i >= 0; i--)
+        {
+            GameObject.Destroy(transform.GetChild(i).gameObject);
+        }
+    }
 }

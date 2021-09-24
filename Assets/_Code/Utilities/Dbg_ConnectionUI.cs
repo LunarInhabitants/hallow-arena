@@ -7,6 +7,7 @@ public class Dbg_ConnectionUI : MonoBehaviour
     public string targetIP = "127.0.0.1";
     public int targetPort = 7777;
     public GameDatabase gameDatabase;
+    public BaseGameMode gameModeToUse;
 
     void OnGUI()
     {
@@ -28,6 +29,7 @@ public class Dbg_ConnectionUI : MonoBehaviour
         if (GUILayout.Button("Host Server"))
         {
             NetworkManager.Singleton.StartHost();
+            Instantiate(gameModeToUse);
         }
 
         GUILayout.Space(4.0f);
@@ -49,6 +51,7 @@ public class Dbg_ConnectionUI : MonoBehaviour
         if (GUILayout.Button("Run As Dedicated Server"))
         {
             NetworkManager.Singleton.StartServer();
+            Instantiate(gameModeToUse);
         }
     }
 

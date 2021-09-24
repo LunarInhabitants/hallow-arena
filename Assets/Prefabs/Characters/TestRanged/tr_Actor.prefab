@@ -110,16 +110,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b963e40ef197e344ba8adf58bb008804, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  initialHealth: 75
   actorUIPrefab: {fileID: 8332796560778597014, guid: da5260157fd7b0940bdee77b913e1291, type: 3}
+  nameplatePrefab: {fileID: 6844427204596249547, guid: 714687e2a8473084c923d23322544b05, type: 3}
+  initialHealth: 75
+  <Team>k__BackingField: 0
   <Emotes>k__BackingField:
   - Emote_Wave
   - Emote_Point
   - Emote_Insult
-  Position:
+  _Net_Position:
     m_InternalValue: {x: 0, y: 0, z: 0}
-  Rotation:
-    m_InternalValue: {x: 0, y: 0, z: 0, w: 0}
+  _Net_LookDirection:
+    m_InternalValue: {x: 0, y: 0, z: 0}
   castProjectilePrefab: {fileID: 5539094098859377834, guid: faf56a574dcfb024fbeb9b7bfa0f92b9, type: 3}
   castPoint: {fileID: 546960817381538334}
 --- !u!1001 &7006433487572866163

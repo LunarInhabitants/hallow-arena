@@ -10,4 +10,5 @@ public class GameDatabase : ScriptableObject
 {
     public List<ActorDefinition> availableCharacters = new List<ActorDefinition>();
     public List<MapDefinition> availableMaps = new List<MapDefinition>();
+    public List<BaseGameMode> gameModes = new List<BaseGameMode>();
 }

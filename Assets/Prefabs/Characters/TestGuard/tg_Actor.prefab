@@ -92,16 +92,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d678a21cf518d284682bbb29ecf3053c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  initialHealth: 100
   actorUIPrefab: {fileID: 8283907561651171602, guid: 4442fb601798048489c5975dcc30f834, type: 3}
+  nameplatePrefab: {fileID: 6844427204596249547, guid: 714687e2a8473084c923d23322544b05, type: 3}
+  initialHealth: 100
+  <Team>k__BackingField: 0
   <Emotes>k__BackingField:
   - Emote_Wave
   - Emote_Point
   - Emote_Insult
-  Position:
+  _Net_Position:
     m_InternalValue: {x: 0, y: 0, z: 0}
-  Rotation:
-    m_InternalValue: {x: 0, y: 0, z: 0, w: 0}
+  _Net_LookDirection:
+    m_InternalValue: {x: 0, y: 0, z: 0}
   swordHurtbox: {fileID: 5404626985865813764}
 --- !u!114 &2671390082231918202
 MonoBehaviour:

@@ -17,3 +17,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 2eb48de61559ae34aa942b117ea3f418, type: 2}
   availableMaps:
   - {fileID: 11400000, guid: a9954dcf92c497847b5df2b97d02a490, type: 2}
+  gameModes:
+  - {fileID: 739867931727236508, guid: d3887f5c4defb5c41b64ce9031280df8, type: 3}
+  - {fileID: 739867931727236508, guid: 9941ca5d6ba90d8458ebddab8924da4b, type: 3}

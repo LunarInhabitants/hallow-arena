@@ -11,7 +11,7 @@ public class MapDefinition : ScriptableObject
     /// <summary>The ID of the scene in the game's build list.</summary>
     public int sceneBuildIndex;
     public string displayName = "A map";
-    public string gameMode = "Deathmatch";
     public string description = "A map";
+    public List<BaseGameMode> supportedGameModes = new List<BaseGameMode>();
     public Sprite icon;
 }

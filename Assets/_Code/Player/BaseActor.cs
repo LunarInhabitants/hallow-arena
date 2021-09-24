@@ -26,10 +26,15 @@ public abstract partial class BaseActor : NetworkBehaviour
 
     #region Variables
 
-    [SerializeField] private int initialHealth;
-
     [SerializeField] private ActorUI actorUIPrefab;
     public ActorUI ActorUI { get; private set; }
+
+    [SerializeField] private PlayerNameplate nameplatePrefab;
+    public PlayerNameplate Nameplate { get; private set; }
+
+
+    [SerializeField] private int initialHealth;
+    [field: SerializeField] public ETeam Team { get; private set; } = ETeam.NoTeam;
 
     #endregion Variables
 
@@ -81,6 +86,9 @@ public abstract partial class BaseActor : NetworkBehaviour
     /// </summary>
     public Vector3 Impulse { get; private set; }
 
+    public bool IsDead => DamageTaker.CurrentHP <= 0;
+    public string PlayerName => ParentController?.PlayerName ?? "Player";
+
     /// <summary>
     /// The list of emotes. Emote 1 = Index 0.<para/>
     /// TODO: Make this player configurable.
@@ -121,14 +129,25 @@ public abstract partial class BaseActor : NetworkBehaviour
         else
         {
             transform.SetLayerRecursively(LayerMask_OtherCharacter);
+
+            // Only other players get nameplates
+            Nameplate = Instantiate(nameplatePrefab, transform);
+            Transform headBone = Animator.GetBoneTransform(HumanBodyBones.Head);
+            Nameplate.transform.localPosition = new Vector3(0.0f, headBone.position.y - transform.position.y + 0.5f, 0.0f);
         }
 
-        Teleport(Position.Value, Rotation.Value);
+
+        Teleport(_Net_Position.Value, _Net_LookDirection.Value);
     }
 
     public void OnCreatedByPlayerController(PlayerController creator)
     {
         ParentController = creator;
+
+        if (Nameplate != null)
+        {
+            Nameplate.SetName(PlayerName);
+        }
     }
 
     public void OnCameraRigAttached(PlayerCameraRig rig)
@@ -140,32 +159,35 @@ public abstract partial class BaseActor : NetworkBehaviour
     {
         PreNetworkUpdate();
 
-        if (IsOwner)
+        if (!IsDead)
         {
-            LocalUpdate();
-        }
+            if (IsOwner)
+            {
+                LocalUpdate();
+            }
 
-        if (Impulse.sqrMagnitude > 0.01f)
-        {
-            CharacterController.Move(Impulse * Time.deltaTime);
+            if (Impulse.sqrMagnitude > 0.01f)
+            {
+                CharacterController.Move(Impulse * Time.deltaTime);
 
-            // Decay the impulse force
-            Vector3 newImpulse = Impulse;
+                // Decay the impulse force
+                Vector3 newImpulse = Impulse;
 
-            // Decay by gravity
-            newImpulse.y = Mathf.Max(0.0f, newImpulse.y - 9.81f * Time.deltaTime);
+                // Decay by gravity
+                newImpulse.y = Mathf.Max(0.0f, newImpulse.y - 9.81f * Time.deltaTime);
 
-            // Decay by group friction if grounded, or air friction if airborne.
-            float delta = Time.deltaTime * IMPULSE_DECAY_MULT;
-            bool isGrounded = CharacterController.isGrounded; // Cache the value - isGrounded might raycast each time.
-            //float targetVelX = isGrounded ? 0.0f : Mathf.Max(Mathf.Abs(newImpulse.x), MAX_AIR_IMPULSE_SPEED) * Mathf.Sign(newImpulse.x);
-            //float targetVelZ = isGrounded ? 0.0f : Mathf.Max(Mathf.Abs(newImpulse.z), MAX_AIR_IMPULSE_SPEED) * Mathf.Sign(newImpulse.z);
-            float targetVelX = 0.0f;
-            float targetVelZ = 0.0f;
-            newImpulse.x = Mathf.Lerp(newImpulse.x, targetVelX, delta);
-            newImpulse.z = Mathf.Lerp(newImpulse.z, targetVelZ, delta);
+                // Decay by group friction if grounded, or air friction if airborne.
+                float delta = Time.deltaTime * IMPULSE_DECAY_MULT;
+                bool isGrounded = CharacterController.isGrounded; // Cache the value - isGrounded might raycast each time.
+                                                                  //float targetVelX = isGrounded ? 0.0f : Mathf.Max(Mathf.Abs(newImpulse.x), MAX_AIR_IMPULSE_SPEED) * Mathf.Sign(newImpulse.x);
+                                                                  //float targetVelZ = isGrounded ? 0.0f : Mathf.Max(Mathf.Abs(newImpulse.z), MAX_AIR_IMPULSE_SPEED) * Mathf.Sign(newImpulse.z);
+                float targetVelX = 0.0f;
+                float targetVelZ = 0.0f;
+                newImpulse.x = Mathf.Lerp(newImpulse.x, targetVelX, delta);
+                newImpulse.z = Mathf.Lerp(newImpulse.z, targetVelZ, delta);
 
-            Impulse = newImpulse;
+                Impulse = newImpulse;
+            }
         }
 
         PostNetworkUpdate();
@@ -211,6 +233,11 @@ public abstract partial class BaseActor : NetworkBehaviour
         }
     }
 
+    public override string ToString()
+    {
+        return $"{PlayerName} - {base.ToString()}";
+    }
+
     protected virtual void OnHurt(DamagePayload payload)
     {
         Debug.Log($"{this} took {payload.Damage} {payload.DamageType} damage");
@@ -226,7 +253,19 @@ public abstract partial class BaseActor : NetworkBehaviour
     {
         Debug.Log($"{this} died!");
 
+        lastOrientatedVelocity = Vector3.zero;
         // TODO: Handle dying
+    }
+
+    protected virtual void Respawn()
+    {
+        SpawnPoint sp = BaseGameMode.Instance.GetBestSpawnPointForRespawn(Team);
+        DamageTaker.TakeDamage(new DamagePayload
+        {
+            Damage = -9999,
+            DamageType = DamageType.Generic,
+        });
+        sp.Spawn(this);
     }
 
     #region General Control
@@ -259,6 +298,21 @@ public abstract partial class BaseActor : NetworkBehaviour
         {
             ApplyImpulse(CharacterController.velocity + new Vector3(0.0f, 10.0f, 0.0f));
             SetAnimationTrigger("Jump");
+        }
+    }
+
+    /// <summary>
+    /// Called by <see cref="PlayerController"/> and handles respawning, as well as calling the actual attack function <see cref="BeginAttack"/>.
+    /// </summary>
+    public void DoBeginAttack()
+    {
+        if (IsDead)
+        {
+            Respawn();
+        }
+        else
+        {
+            BeginAttack();
         }
     }
 
@@ -319,10 +373,10 @@ public abstract partial class BaseActor : NetworkBehaviour
 
     #region Physics
 
-    public void Teleport(Vector3 position, Quaternion rotation)
+    public void Teleport(Vector3 position, Vector3 forward)
     {
         SetPosition(position);
-        SetRotation(rotation);
+        SetLookDirection(forward);
         Physics.SyncTransforms(); // Needed as CharacterController otherwise won't update it's internal state.
     }
 
@@ -362,7 +416,7 @@ public abstract partial class BaseActor : NetworkBehaviour
 
             if (IsServer)
             {
-                Position.Value = newPosition;
+                _Net_Position.Value = newPosition;
             }
             else
             {
@@ -374,30 +428,33 @@ public abstract partial class BaseActor : NetworkBehaviour
     [ServerRpc]
     void _SetPositionServerRpc(Vector3 newPosition)
     {
-        Position.Value = newPosition;
+        _Net_Position.Value = newPosition;
     }
 
-    void SetRotation(Quaternion newRotation)
+    void SetLookDirection(Vector3 newLook)
     {
         if (IsOwner)
         {
-            transform.rotation = newRotation;
+            LookDirection = newLook.normalized;
+            Vector3 lookDirHoriz = LookDirection;
+            lookDirHoriz.y = 0;
+            cameraLookAngles.x = Vector3.SignedAngle(Vector3.forward, lookDirHoriz.normalized, Vector3.up);
 
             if (IsServer)
             {
-                Rotation.Value = newRotation;
+                _Net_LookDirection.Value = newLook;
             }
             else
             {
-                _SetRotationServerRpc(newRotation);
+                _SetLookDirectionServerRpc(newLook);
             }
         }
     }
 
     [ServerRpc]
-    void _SetRotationServerRpc(Quaternion newRotation)
+    void _SetLookDirectionServerRpc(Vector3 newLook)
     {
-        Rotation.Value = newRotation;
+        _Net_LookDirection.Value = newLook;
     }
 
     #endregion Networked Position/Rotation

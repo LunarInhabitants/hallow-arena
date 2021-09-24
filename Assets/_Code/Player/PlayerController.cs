@@ -21,6 +21,8 @@ public class PlayerController : NetworkBehaviour
     private NetworkVariableString uniqueName = new NetworkVariableString(new NetworkVariableSettings { WritePermission = NetworkVariablePermission.ServerOnly });
 
     public bool IsUIOpen => characterSelectUI.gameObject.activeInHierarchy;
+    public string PlayerName => uniqueName.Value;
+
     public BaseActor Actor { get; private set; }
     public PlayerCameraRig CameraRig { get; private set; }
     private CharacterSelectUI characterSelectUI;
@@ -29,9 +31,9 @@ public class PlayerController : NetworkBehaviour
     {
         if (IsServer)
         {
-            desiredName.OnValueChanged += desiredNameChanged;
+            desiredName.OnValueChanged += DesiredNameChanged;
         }
-        uniqueName.OnValueChanged += uniqueNameChanged;
+        uniqueName.OnValueChanged += UniqueNameChanged;
 
         if (IsLocalPlayer)
         {
@@ -49,19 +51,18 @@ public class PlayerController : NetworkBehaviour
             GetComponent<PlayerInput>().enabled = false;
         }
     }
-    private void uniqueNameChanged(string previousValue, string newValue)
+    private void UniqueNameChanged(string previousValue, string newValue)
     {
         Debug.Log($"OwnerClient {OwnerClientId} name changed from \"{previousValue}\" to \"{uniqueName.Value}\"");
     }
 
-    private void desiredNameChanged(string previousValue, string newValue)
+    private void DesiredNameChanged(string previousValue, string newValue)
     {
-        
         Debug.Log($"OwnerClient {OwnerClientId} requested name change from \"{previousValue}\" to \"{newValue}\"");
-        uniqueName.Value = validateName(newValue);
+        uniqueName.Value = ValidateName(newValue);
     }
 
-    private string validateName(string name)
+    private string ValidateName(string name)
     {
         if (string.IsNullOrWhiteSpace(name)) { return "Empty"; };
         return name;
@@ -127,7 +128,7 @@ public class PlayerController : NetworkBehaviour
 
             if (CameraRig.CameraMode == CameraMode.IsometricCamera) // TODO: Dev Check - Remove this block if we remove isometric camera
             {
-                Actor.SetForward(moveVec); // TEMP UNTIL 3RD PERSON CAMERA
+                Actor.SetLookVector(moveVec); // TEMP UNTIL 3RD PERSON CAMERA
             }
         }
 
@@ -177,7 +178,7 @@ public class PlayerController : NetworkBehaviour
         {
             if (inputValue.isPressed)
             {
-                Actor.BeginAttack();
+                Actor.DoBeginAttack();
             }
             else
             {
@@ -270,7 +271,7 @@ public class PlayerController : NetworkBehaviour
 
     #endregion Controls Events
 
-[ServerRpc]
+    [ServerRpc]
     public void SpawnPlayerObjectServerRpc(ulong clientID, string actorID)
     {
         ActorDefinition actorDef = gameDatabase.availableCharacters.FirstOrDefault(a => a.internalID.Equals(actorID, StringComparison.OrdinalIgnoreCase));
@@ -296,5 +297,8 @@ public class PlayerController : NetworkBehaviour
         BaseActor ba = Instantiate(actorDef.prefab, transform);
         ba.GetComponent<NetworkObject>().SpawnWithOwnership(clientID);
         //ba.GetComponent<NetworkObject>().Spawn();
+
+        SpawnPoint sp = BaseGameMode.Instance.GetBestSpawnPointForRespawn(ETeam.NoTeam);
+        sp.Spawn(ba);
     }
 }
